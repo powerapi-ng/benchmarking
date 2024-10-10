@@ -18,6 +18,6 @@ usagepolicycheck -t
 g5k-setup-docker -t
 ``` 
 
-- To check reservation at Lille: 
+- To check reservations at Lille site (with authentification): 
 
 https://intranet.grid5000.fr/oar/Lille/monika.cgi
