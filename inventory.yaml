@@ -1,0 +1,42 @@
+clusters:
+  - site: lille
+    name: chiclet
+    exotic: false
+    nb_nodes: 8
+    cpu:
+      nb: 2
+      name: AMD EPYC 7301
+      architecture: x86_64
+      cores_per_cpu: 16
+      threads_per_socket: 2
+      flags: [""]
+    memory_in_GiB: 128
+    accelerators: {}
+  - site: Grenoble
+    name: servan
+    exotic: true
+    nb_nodes: 2
+    cpu:
+      nb: 2
+      name: AMD EPYC 7352
+      architecture: x86_64
+      cores_per_cpu: 24
+      threads_per_socket: 2
+      flags: [""]
+    memory: 128
+    accelerators:
+      nb: 1
+      name: Xilinx Alveo U200
+      VRAM_in_GiB: -1
+spirals:
+  - host: powerapi1u.lille.inria.fr
+    cpu:
+      nb: 1
+      name: AMD EPYC 7302P
+      architecture: x86_64
+      cores_per_cpu: 16
+      threads_per_socket: 2
+      flags: [""]
+    memory_in_GiB:
+    accelerators: {}
+
