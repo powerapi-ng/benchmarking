@@ -36,6 +36,9 @@ function api_call {
 
 function main {
     inventoryLogThis "Starting Benchmarks !" "INFO"
+    
+    inventoryLogThis "Remove old inventory files to update" "INFO"
+    find ./inventories.d/ -type f -mtime +7 -exec rm {} \;
 
     SITES="$(api_call ${BASE_API_URI}${SITES_ENDPOINT})"
     mapfile -t SITES_UID < <(echo "${SITES}" | yq '.items[] | .uid')
@@ -50,7 +53,7 @@ function main {
 
         for CLUSTER_UID in "${CLUSTERS_UID[@]}"; do
             inventoryLogThis "Processing cluster: ${SITE_UID}/${CLUSTER_UID}" "DEBUG"
-            mkdir $INVENTORY_DIRECTORY/$SITE_UID/$CLUSTER_UID/
+            mkdir -p $INVENTORY_DIRECTORY/$SITE_UID/$CLUSTER_UID/
             
             CLUSTER_API_URI="${SITE_API_URI}${CLUSTERS_ENDPOINT}/${CLUSTER_UID}/"
             NODES="$(api_call ${CLUSTER_API_URI}${NODES_ENDPOINT})"
@@ -59,9 +62,15 @@ function main {
 
             for NODE_UID in "${NODES_UID[@]}"; do
                 inventoryLogThis "Processing node: ${SITE_UID}/${CLUSTER_UID}/${NODE_UID}" "DEBUG"
-
-                NODE_API_URI="${CLUSTER_API_URI}/${NODES_ENDPOINT}/${NODE_UID}${NODE_ENDPOINT_SUFFIX}"
-                api_call ${NODE_API_URI} > "$INVENTORY_DIRECTORY/$SITE_UID/$CLUSTER_UID/$NODE_UID.json"
+                NODE_SPECS_FILE_PATH="$INVENTORY_DIRECTORY/$SITE_UID/$CLUSTER_UID/$NODE_UID.json"
+                
+                if ! [[ -f $NODE_SPECS_FILE_PATH ]]; then
+                    echo "$NODE_SPECS_FILE_PATH was too old or not present !"
+                    NODE_API_URI="${CLUSTER_API_URI}/${NODES_ENDPOINT}/${NODE_UID}${NODE_ENDPOINT_SUFFIX}"
+                    api_call ${NODE_API_URI} > $NODE_SPECS_FILE_PATH
+                else
+                    echo "$NODE_SPECS_FILE_PATH is up to date !"
+                fi
 
                 break
 
