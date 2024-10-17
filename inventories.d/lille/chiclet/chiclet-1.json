@@ -1,0 +1,336 @@
+{
+  "architecture": {
+    "cpu_core_numbering": "round-robin",
+    "nb_cores": 32,
+    "nb_procs": 2,
+    "nb_threads": 64,
+    "platform_type": "x86_64"
+  },
+  "bios": {
+    "release_date": "01/17/2022",
+    "vendor": "Dell Inc.",
+    "version": "1.18.0"
+  },
+  "bmc_version": "5.10.30.00",
+  "chassis": {
+    "manufactured_at": "2018-07-27",
+    "manufacturer": "Dell Inc.",
+    "name": "PowerEdge R7425",
+    "serial": "5CG05R2",
+    "warranty_end": "2023-07-27"
+  },
+  "exotic": false,
+  "kavlan": {
+    "eth0": {
+      "kavlan-1": "192.168.198.1",
+      "kavlan-11": "10.7.196.101",
+      "kavlan-12": "10.11.196.101",
+      "kavlan-13": "10.15.196.101",
+      "kavlan-14": "10.19.196.101",
+      "kavlan-16": "10.27.196.101",
+      "kavlan-17": "10.31.196.101",
+      "kavlan-18": "10.35.196.101",
+      "kavlan-2": "192.168.214.1",
+      "kavlan-20": "10.43.196.101",
+      "kavlan-21": "10.47.196.101",
+      "kavlan-3": "192.168.230.1",
+      "kavlan-4": "10.8.6.1",
+      "kavlan-5": "10.8.70.1",
+      "kavlan-6": "10.8.134.1",
+      "kavlan-7": "10.8.198.1",
+      "kavlan-8": "10.9.6.1",
+      "kavlan-9": "10.9.70.1"
+    },
+    "eth1": {
+      "kavlan-1": "192.168.199.1",
+      "kavlan-11": "10.7.196.151",
+      "kavlan-12": "10.11.196.151",
+      "kavlan-13": "10.15.196.151",
+      "kavlan-14": "10.19.196.151",
+      "kavlan-16": "10.27.196.151",
+      "kavlan-17": "10.31.196.151",
+      "kavlan-18": "10.35.196.151",
+      "kavlan-2": "192.168.215.1",
+      "kavlan-20": "10.43.196.151",
+      "kavlan-21": "10.47.196.151",
+      "kavlan-3": "192.168.231.1",
+      "kavlan-4": "10.8.7.9",
+      "kavlan-5": "10.8.71.9",
+      "kavlan-6": "10.8.135.9",
+      "kavlan-7": "10.8.199.9",
+      "kavlan-8": "10.9.7.9",
+      "kavlan-9": "10.9.71.9"
+    }
+  },
+  "kavlan6": {
+    "eth0": {
+      "kavlan-1": "2001:660:4406:280:8::1",
+      "kavlan-11": "2001:660:4406:1a0:208::1",
+      "kavlan-12": "2001:660:4406:2a0:208::1",
+      "kavlan-13": "2001:660:4406:4a0:208::1",
+      "kavlan-14": "2001:660:4406:5a0:208::1",
+      "kavlan-16": "2001:660:4406:7a0:208::1",
+      "kavlan-17": "2001:660:4406:9a0:208::1",
+      "kavlan-18": "2001:660:4406:8a0:208::1",
+      "kavlan-2": "2001:660:4406:281:8::1",
+      "kavlan-20": "2001:660:4406:3a0:208::1",
+      "kavlan-21": "2001:660:4406:6a0:208::1",
+      "kavlan-3": "2001:660:4406:282:8::1",
+      "kavlan-4": "2001:660:4406:290:8::1",
+      "kavlan-5": "2001:660:4406:291:8::1",
+      "kavlan-6": "2001:660:4406:292:8::1",
+      "kavlan-7": "2001:660:4406:293:8::1",
+      "kavlan-8": "2001:660:4406:294:8::1",
+      "kavlan-9": "2001:660:4406:295:8::1"
+    },
+    "eth1": {
+      "kavlan-1": "2001:660:4406:280:8:1:0:1",
+      "kavlan-11": "2001:660:4406:1a0:208:1:0:1",
+      "kavlan-12": "2001:660:4406:2a0:208:1:0:1",
+      "kavlan-13": "2001:660:4406:4a0:208:1:0:1",
+      "kavlan-14": "2001:660:4406:5a0:208:1:0:1",
+      "kavlan-16": "2001:660:4406:7a0:208:1:0:1",
+      "kavlan-17": "2001:660:4406:9a0:208:1:0:1",
+      "kavlan-18": "2001:660:4406:8a0:208:1:0:1",
+      "kavlan-2": "2001:660:4406:281:8:1:0:1",
+      "kavlan-20": "2001:660:4406:3a0:208:1:0:1",
+      "kavlan-21": "2001:660:4406:6a0:208:1:0:1",
+      "kavlan-3": "2001:660:4406:282:8:1:0:1",
+      "kavlan-4": "2001:660:4406:290:8:1:0:1",
+      "kavlan-5": "2001:660:4406:291:8:1:0:1",
+      "kavlan-6": "2001:660:4406:292:8:1:0:1",
+      "kavlan-7": "2001:660:4406:293:8:1:0:1",
+      "kavlan-8": "2001:660:4406:294:8:1:0:1",
+      "kavlan-9": "2001:660:4406:295:8:1:0:1"
+    }
+  },
+  "main_memory": {
+    "ram_size": 137438953472
+  },
+  "management_tools": {
+    "bmc_vendor_tool": "racadm",
+    "ipmitool": {
+      "retries": 5
+    }
+  },
+  "memory_devices": [
+    {
+      "device": "dimm_a1",
+      "size": 17179869184,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_a3",
+      "size": 17179869184,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_a5",
+      "size": 17179869184,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_a7",
+      "size": 17179869184,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_b1",
+      "size": 17179869184,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_b3",
+      "size": 17179869184,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_b5",
+      "size": 17179869184,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_b7",
+      "size": 17179869184,
+      "technology": "dram"
+    }
+  ],
+  "network_adapters": [
+    {
+      "bridged": true,
+      "device": "eth0",
+      "driver": "i40e",
+      "enabled": true,
+      "firmware_version": "8.40 0x8000b1fb 20.5.13",
+      "interface": "Ethernet",
+      "ip": "172.16.39.1",
+      "ip6": "2001:660:4406:200:8::1",
+      "kavlan": true,
+      "mac": "40:a6:b7:05:b9:80",
+      "management": false,
+      "model": "Ethernet Controller XXV710 for 25GbE SFP28",
+      "mountable": true,
+      "mounted": true,
+      "name": "enp98s0f0",
+      "network_address": "chiclet-1.lille.grid5000.fr",
+      "rate": 25000000000,
+      "sriov": false,
+      "sriov_totalvfs": 0,
+      "switch": "sw-chiclet-1",
+      "switch_port": "Ethernet1/9",
+      "vendor": "Intel"
+    },
+    {
+      "device": "eth1",
+      "driver": "i40e",
+      "enabled": true,
+      "firmware_version": "8.40 0x8000b1fb 20.5.13",
+      "interface": "Ethernet",
+      "ip": "172.16.39.101",
+      "ip6": "2001:660:4406:200:8:1:0:1",
+      "kavlan": true,
+      "mac": "40:a6:b7:05:b9:81",
+      "management": false,
+      "model": "Ethernet Controller XXV710 for 25GbE SFP28",
+      "mountable": true,
+      "mounted": false,
+      "name": "enp98s0f1",
+      "network_address": "chiclet-1-eth1.lille.grid5000.fr",
+      "rate": 25000000000,
+      "sriov": false,
+      "sriov_totalvfs": 0,
+      "switch": "sw-chiclet-1",
+      "switch_port": "Ethernet1/25",
+      "vendor": "Intel"
+    },
+    {
+      "device": "bmc",
+      "enabled": true,
+      "interface": "Ethernet",
+      "ip": "172.17.39.1",
+      "kavlan": false,
+      "mac": "58:8a:5a:ee:92:16",
+      "management": true,
+      "mountable": false,
+      "mounted": false,
+      "network_address": "chiclet-1-bmc.lille.grid5000.fr"
+    }
+  ],
+  "nodeset": "chiclet",
+  "operating_system": {
+    "cstate_driver": "acpi_idle",
+    "cstate_governor": "menu",
+    "ht_enabled": true,
+    "pstate_driver": "acpi-cpufreq",
+    "pstate_governor": "performance",
+    "turboboost_enabled": true
+  },
+  "pdu": [
+    {
+      "port": 7,
+      "uid": "pdu-b1p1"
+    },
+    {
+      "port": 6,
+      "uid": "pdu-b1p2"
+    }
+  ],
+  "performance": {
+    "core_flops": 17600000000,
+    "node_flops": 563200000000
+  },
+  "processor": {
+    "cache_l1": null,
+    "cache_l1d": 32768,
+    "cache_l1i": 65536,
+    "cache_l2": 524288,
+    "cache_l3": 8388608,
+    "clock_speed": 2200000000,
+    "ht_capable": true,
+    "instruction_set": "x86-64",
+    "microarchitecture": "Zen",
+    "microcode": "0x800126e",
+    "model": "AMD EPYC",
+    "other_description": "AMD EPYC 7301 16-Core Processor",
+    "vendor": "AMD",
+    "version": 7301
+  },
+  "redfish": true,
+  "software": {
+    "forced-deployment-timestamp": 202007300948,
+    "postinstall-version": "1.2024101411",
+    "standard-environment": "debian11-x64-std"
+  },
+  "storage_devices": [
+    {
+      "by_id": "/dev/disk/by-id/wwn-0x58ce38ee2035dde9",
+      "by_path": "/dev/disk/by-path/pci-0000:61:00.0-scsi-0:0:0:0",
+      "firmware_version": "AS10",
+      "id": "disk0",
+      "interface": "SAS",
+      "model": "PX05SVB048Y",
+      "size": 480103981056,
+      "storage": "SSD",
+      "vendor": "Toshiba"
+    },
+    {
+      "by_id": "/dev/disk/by-id/wwn-0x5000c500a64eb7f7",
+      "by_path": "/dev/disk/by-path/pci-0000:61:00.0-scsi-0:0:1:0",
+      "firmware_version": "DT32",
+      "id": "disk1",
+      "interface": "SAS",
+      "model": "ST4000NM0295",
+      "reservation": true,
+      "size": 4000787030016,
+      "storage": "HDD",
+      "vendor": "Seagate"
+    },
+    {
+      "by_id": "/dev/disk/by-id/wwn-0x5000c500a64daa5f",
+      "by_path": "/dev/disk/by-path/pci-0000:61:00.0-scsi-0:0:2:0",
+      "firmware_version": "DT32",
+      "id": "disk2",
+      "interface": "SAS",
+      "model": "ST4000NM0295",
+      "reservation": true,
+      "size": 4000787030016,
+      "storage": "HDD",
+      "vendor": "Seagate"
+    }
+  ],
+  "supported_job_types": {
+    "besteffort": true,
+    "deploy": true,
+    "max_walltime": 0,
+    "queues": [
+      "admin",
+      "default"
+    ],
+    "virtual": "amd-v"
+  },
+  "type": "node",
+  "uid": "chiclet-1",
+  "version": "725f657a3869c10021af8a43e4ac2ebfc6619e15",
+  "links": [
+    {
+      "rel": "self",
+      "type": "application/vnd.grid5000.item+json",
+      "href": "/stable/sites/lille/clusters/chiclet/nodes/chiclet-1"
+    },
+    {
+      "rel": "parent",
+      "type": "application/vnd.grid5000.item+json",
+      "href": "/stable/sites/lille/clusters/chiclet"
+    },
+    {
+      "rel": "version",
+      "type": "application/vnd.grid5000.item+json",
+      "href": "/stable/sites/lille/clusters/chiclet/nodes/chiclet-1/versions/725f657a3869c10021af8a43e4ac2ebfc6619e15"
+    },
+    {
+      "rel": "versions",
+      "type": "application/vnd.grid5000.collection+json",
+      "href": "/stable/sites/lille/clusters/chiclet/nodes/chiclet-1/versions"
+    }
+  ]
+}

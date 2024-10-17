@@ -1,0 +1,708 @@
+{
+  "architecture": {
+    "cpu_core_numbering": "contiguous",
+    "nb_cores": 128,
+    "nb_procs": 2,
+    "nb_threads": 256,
+    "platform_type": "x86_64"
+  },
+  "bios": {
+    "release_date": "03/09/2023",
+    "vendor": "American Megatrends Inc.",
+    "version": 1.21
+  },
+  "bmc_version": "0.21",
+  "chassis": {
+    "manufactured_at": "2021-11-24",
+    "manufacturer": "NVIDIA",
+    "name": "DGXA100 920-23687-2530-000",
+    "serial": 1574520610109,
+    "warranty_end": "2023-11-24"
+  },
+  "exotic": true,
+  "gpu_devices": {
+    "nvidia0": {
+      "compute_capability": "8.0",
+      "cores": 6912,
+      "cpu_affinity": 0,
+      "device": "/dev/nvidia0",
+      "memory": 42949672960,
+      "microarchitecture": "Ampere",
+      "model": "A100-SXM4-40GB",
+      "performance": {
+        "fp-16": 77970000000000,
+        "fp-32": 19490000000000,
+        "fp-64": 9746000000000
+      },
+      "power_default_limit": "400.00 W",
+      "vbios_version": "92.00.45.00.03",
+      "vendor": "Nvidia"
+    },
+    "nvidia1": {
+      "compute_capability": "8.0",
+      "cores": 6912,
+      "cpu_affinity": 0,
+      "device": "/dev/nvidia1",
+      "memory": 42949672960,
+      "microarchitecture": "Ampere",
+      "model": "A100-SXM4-40GB",
+      "performance": {
+        "fp-16": 77970000000000,
+        "fp-32": 19490000000000,
+        "fp-64": 9746000000000
+      },
+      "power_default_limit": "400.00 W",
+      "vbios_version": "92.00.45.00.03",
+      "vendor": "Nvidia"
+    },
+    "nvidia2": {
+      "compute_capability": "8.0",
+      "cores": 6912,
+      "cpu_affinity": 0,
+      "device": "/dev/nvidia2",
+      "memory": 42949672960,
+      "microarchitecture": "Ampere",
+      "model": "A100-SXM4-40GB",
+      "performance": {
+        "fp-16": 77970000000000,
+        "fp-32": 19490000000000,
+        "fp-64": 9746000000000
+      },
+      "power_default_limit": "400.00 W",
+      "vbios_version": "92.00.45.00.03",
+      "vendor": "Nvidia"
+    },
+    "nvidia3": {
+      "compute_capability": "8.0",
+      "cores": 6912,
+      "cpu_affinity": 0,
+      "device": "/dev/nvidia3",
+      "memory": 42949672960,
+      "microarchitecture": "Ampere",
+      "model": "A100-SXM4-40GB",
+      "performance": {
+        "fp-16": 77970000000000,
+        "fp-32": 19490000000000,
+        "fp-64": 9746000000000
+      },
+      "power_default_limit": "400.00 W",
+      "vbios_version": "92.00.45.00.03",
+      "vendor": "Nvidia"
+    },
+    "nvidia4": {
+      "compute_capability": "8.0",
+      "cores": 6912,
+      "cpu_affinity": 1,
+      "device": "/dev/nvidia4",
+      "memory": 42949672960,
+      "microarchitecture": "Ampere",
+      "model": "A100-SXM4-40GB",
+      "performance": {
+        "fp-16": 77970000000000,
+        "fp-32": 19490000000000,
+        "fp-64": 9746000000000
+      },
+      "power_default_limit": "400.00 W",
+      "vbios_version": "92.00.45.00.03",
+      "vendor": "Nvidia"
+    },
+    "nvidia5": {
+      "compute_capability": "8.0",
+      "cores": 6912,
+      "cpu_affinity": 1,
+      "device": "/dev/nvidia5",
+      "memory": 42949672960,
+      "microarchitecture": "Ampere",
+      "model": "A100-SXM4-40GB",
+      "performance": {
+        "fp-16": 77970000000000,
+        "fp-32": 19490000000000,
+        "fp-64": 9746000000000
+      },
+      "power_default_limit": "400.00 W",
+      "vbios_version": "92.00.45.00.03",
+      "vendor": "Nvidia"
+    },
+    "nvidia6": {
+      "compute_capability": "8.0",
+      "cores": 6912,
+      "cpu_affinity": 1,
+      "device": "/dev/nvidia6",
+      "memory": 42949672960,
+      "microarchitecture": "Ampere",
+      "model": "A100-SXM4-40GB",
+      "performance": {
+        "fp-16": 77970000000000,
+        "fp-32": 19490000000000,
+        "fp-64": 9746000000000
+      },
+      "power_default_limit": "400.00 W",
+      "vbios_version": "92.00.45.00.03",
+      "vendor": "Nvidia"
+    },
+    "nvidia7": {
+      "compute_capability": "8.0",
+      "cores": 6912,
+      "cpu_affinity": 1,
+      "device": "/dev/nvidia7",
+      "memory": 42949672960,
+      "microarchitecture": "Ampere",
+      "model": "A100-SXM4-40GB",
+      "performance": {
+        "fp-16": 77970000000000,
+        "fp-32": 19490000000000,
+        "fp-64": 9746000000000
+      },
+      "power_default_limit": "400.00 W",
+      "vbios_version": "92.00.45.00.03",
+      "vendor": "Nvidia"
+    }
+  },
+  "kavlan": {
+    "eth0": {
+      "kavlan-1": "192.168.200.1",
+      "kavlan-11": "10.7.213.1",
+      "kavlan-12": "10.11.213.1",
+      "kavlan-13": "10.15.213.1",
+      "kavlan-14": "10.19.213.1",
+      "kavlan-16": "10.27.213.1",
+      "kavlan-17": "10.31.213.1",
+      "kavlan-18": "10.35.213.1",
+      "kavlan-2": "192.168.216.1",
+      "kavlan-20": "10.43.213.1",
+      "kavlan-21": "10.47.213.1",
+      "kavlan-3": "192.168.232.1",
+      "kavlan-4": "10.12.8.1",
+      "kavlan-5": "10.12.72.1",
+      "kavlan-6": "10.12.136.1",
+      "kavlan-7": "10.12.200.1",
+      "kavlan-8": "10.13.8.1",
+      "kavlan-9": "10.13.72.1"
+    }
+  },
+  "kavlan6": {
+    "eth0": {
+      "kavlan-1": "2001:660:4406:480:9::1",
+      "kavlan-11": "2001:660:4406:1a0:409::1",
+      "kavlan-12": "2001:660:4406:2a0:409::1",
+      "kavlan-13": "2001:660:4406:4a0:409::1",
+      "kavlan-14": "2001:660:4406:5a0:409::1",
+      "kavlan-16": "2001:660:4406:7a0:409::1",
+      "kavlan-17": "2001:660:4406:9a0:409::1",
+      "kavlan-18": "2001:660:4406:8a0:409::1",
+      "kavlan-2": "2001:660:4406:481:9::1",
+      "kavlan-20": "2001:660:4406:3a0:409::1",
+      "kavlan-21": "2001:660:4406:6a0:409::1",
+      "kavlan-3": "2001:660:4406:482:9::1",
+      "kavlan-4": "2001:660:4406:490:9::1",
+      "kavlan-5": "2001:660:4406:491:9::1",
+      "kavlan-6": "2001:660:4406:492:9::1",
+      "kavlan-7": "2001:660:4406:493:9::1",
+      "kavlan-8": "2001:660:4406:494:9::1",
+      "kavlan-9": "2001:660:4406:495:9::1"
+    }
+  },
+  "main_memory": {
+    "ram_size": 1099511627776
+  },
+  "management_tools": {
+    "bmc_vendor_tool": "ipmitool",
+    "ipmitool": {
+      "retries": 5
+    }
+  },
+  "memory_devices": [
+    {
+      "device": "dimm_cpu0_dimm_a1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu0_dimm_b1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu0_dimm_c1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu0_dimm_d1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu0_dimm_e1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu0_dimm_f1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu0_dimm_g1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu0_dimm_h1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu1_dimm_i1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu1_dimm_j1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu1_dimm_k1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu1_dimm_l1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu1_dimm_m1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu1_dimm_n1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu1_dimm_o1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_cpu1_dimm_p1",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    }
+  ],
+  "network_adapters": [
+    {
+      "device": "eth0",
+      "driver": "mlx5_core",
+      "enabled": true,
+      "firmware_version": "20.31.2354 (MT_0000000225)",
+      "interface": "Ethernet",
+      "ip": "172.16.56.1",
+      "ip6": "2001:660:4406:400:9::1",
+      "kavlan": true,
+      "mac": "b8:ce:f6:2d:18:d6",
+      "management": false,
+      "model": "MT28908 Family [ConnectX-6]",
+      "mountable": true,
+      "mounted": true,
+      "name": "enp225s0f0np0",
+      "network_address": "sirius-1.lyon.grid5000.fr",
+      "rate": 100000000000,
+      "sriov": false,
+      "sriov_totalvfs": 0,
+      "switch": "gw",
+      "switch_port": "ethernet1/1/26",
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "eth1",
+      "driver": "igb",
+      "enabled": false,
+      "firmware_version": "3.25, 0x800005cc",
+      "interface": "Ethernet",
+      "kavlan": false,
+      "mac": "5c:ff:35:fb:bd:57",
+      "management": false,
+      "model": "I210 Gigabit Network Connection",
+      "mountable": false,
+      "mounted": false,
+      "name": "enp226s0",
+      "sriov": false,
+      "sriov_totalvfs": 0,
+      "vendor": "Intel"
+    },
+    {
+      "device": "eth2",
+      "driver": "mlx5_core",
+      "enabled": false,
+      "firmware_version": "20.31.2354 (MT_0000000225)",
+      "interface": "Ethernet",
+      "kavlan": false,
+      "mac": "b8:ce:f6:2d:18:d7",
+      "management": false,
+      "model": "MT28908 Family [ConnectX-6]",
+      "mountable": false,
+      "mounted": false,
+      "name": "enp225s0f1np1",
+      "sriov": false,
+      "sriov_totalvfs": 0,
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "ib0",
+      "driver": "mlx5_core",
+      "enabled": false,
+      "firmware_version": "20.31.2354",
+      "guid": "0xb8cef60300632c5c",
+      "interface": "InfiniBand",
+      "kavlan": false,
+      "mac": "b8:ce:f6:03:00:63:2c:5c",
+      "management": false,
+      "model": "MT28908 Family [ConnectX-6]",
+      "mountable": false,
+      "mounted": false,
+      "name": "ib0",
+      "netmask": "255.255.240.0",
+      "rate": 10000000000,
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "ib1",
+      "driver": "mlx5_core",
+      "enabled": false,
+      "firmware_version": "20.31.2354",
+      "guid": "0xb8cef60300632c54",
+      "interface": "InfiniBand",
+      "kavlan": false,
+      "mac": "b8:ce:f6:03:00:63:2c:54",
+      "management": false,
+      "model": "MT28908 Family [ConnectX-6]",
+      "mountable": false,
+      "mounted": false,
+      "name": "ib1",
+      "rate": 10000000000,
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "ib2",
+      "driver": "mlx5_core",
+      "enabled": false,
+      "firmware_version": "20.31.2354",
+      "guid": "0xb8cef60300632388",
+      "interface": "InfiniBand",
+      "kavlan": false,
+      "mac": "b8:ce:f6:03:00:63:23:88",
+      "management": false,
+      "model": "MT28908 Family [ConnectX-6]",
+      "mountable": false,
+      "mounted": false,
+      "name": "ib2",
+      "rate": 10000000000,
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "ib3",
+      "driver": "mlx5_core",
+      "enabled": false,
+      "firmware_version": "20.31.2354",
+      "guid": "0xb8cef603007d8592",
+      "interface": "InfiniBand",
+      "kavlan": false,
+      "mac": "b8:ce:f6:03:00:7d:85:92",
+      "management": false,
+      "model": "MT28908 Family [ConnectX-6]",
+      "mountable": false,
+      "mounted": false,
+      "name": "ib3",
+      "rate": 10000000000,
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "ib4",
+      "driver": "mlx5_core",
+      "enabled": false,
+      "firmware_version": "20.31.2354",
+      "guid": "0xb8cef60300633c8c",
+      "interface": "InfiniBand",
+      "kavlan": false,
+      "mac": "b8:ce:f6:03:00:63:3c:8c",
+      "management": false,
+      "model": "MT28908 Family [ConnectX-6]",
+      "mountable": false,
+      "mounted": false,
+      "name": "ib4",
+      "rate": 10000000000,
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "ib5",
+      "driver": "mlx5_core",
+      "enabled": false,
+      "firmware_version": "20.31.2354",
+      "guid": "0xb8cef60300633c94",
+      "interface": "InfiniBand",
+      "kavlan": false,
+      "mac": "b8:ce:f6:03:00:63:3c:94",
+      "management": false,
+      "model": "MT28908 Family [ConnectX-6]",
+      "mountable": false,
+      "mounted": false,
+      "name": "ib5",
+      "rate": 10000000000,
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "ib6",
+      "driver": "mlx5_core",
+      "enabled": false,
+      "firmware_version": "20.31.2354",
+      "guid": "0xb8cef60300632310",
+      "interface": "InfiniBand",
+      "kavlan": false,
+      "mac": "b8:ce:f6:03:00:63:23:10",
+      "management": false,
+      "model": "MT28908 Family [ConnectX-6]",
+      "mountable": false,
+      "mounted": false,
+      "name": "ib6",
+      "rate": 10000000000,
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "ib7",
+      "driver": "mlx5_core",
+      "enabled": false,
+      "firmware_version": "20.31.2354",
+      "guid": "0xb8cef603007d8002",
+      "interface": "InfiniBand",
+      "kavlan": false,
+      "mac": "b8:ce:f6:03:00:7d:80:02",
+      "management": false,
+      "model": "MT28908 Family [ConnectX-6]",
+      "mountable": false,
+      "mounted": false,
+      "name": "ib7",
+      "rate": 10000000000,
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "bmc",
+      "enabled": true,
+      "interface": "Ethernet",
+      "ip": "172.17.56.1",
+      "kavlan": false,
+      "mac": "5c:ff:35:fb:ba:ff",
+      "management": true,
+      "mountable": false,
+      "mounted": false,
+      "network_address": "sirius-1-bmc.lyon.grid5000.fr"
+    }
+  ],
+  "nodeset": "sirius",
+  "operating_system": {
+    "cstate_driver": "none",
+    "cstate_governor": "menu",
+    "ht_enabled": true,
+    "pstate_driver": "acpi-cpufreq",
+    "pstate_governor": "performance",
+    "turboboost_enabled": true
+  },
+  "pdu": [
+    {
+      "port": "a8",
+      "uid": "pdu3a"
+    },
+    {
+      "port": "b8",
+      "uid": "pdu3a"
+    },
+    {
+      "port": "c8",
+      "uid": "pdu3a"
+    },
+    {
+      "port": "a8",
+      "uid": "pdu3b"
+    },
+    {
+      "port": "b8",
+      "uid": "pdu3b"
+    },
+    {
+      "port": "c8",
+      "uid": "pdu3b"
+    },
+    {
+      "kind": "wattmetre-only",
+      "port": 6,
+      "uid": "wattmetrev3-1"
+    },
+    {
+      "kind": "wattmetre-only",
+      "port": 7,
+      "uid": "wattmetrev3-1"
+    },
+    {
+      "kind": "wattmetre-only",
+      "port": 8,
+      "uid": "wattmetrev3-1"
+    },
+    {
+      "kind": "wattmetre-only",
+      "port": 9,
+      "uid": "wattmetrev3-1"
+    },
+    {
+      "kind": "wattmetre-only",
+      "port": 10,
+      "uid": "wattmetrev3-1"
+    },
+    {
+      "kind": "wattmetre-only",
+      "port": 11,
+      "uid": "wattmetrev3-1"
+    }
+  ],
+  "performance": {
+    "core_flops": 33600000000,
+    "node_flops": 4300800000000
+  },
+  "processor": {
+    "cache_l1": null,
+    "cache_l1d": 32768,
+    "cache_l1i": 32768,
+    "cache_l2": 524288,
+    "cache_l3": 16777216,
+    "clock_speed": 2100000000,
+    "ht_capable": true,
+    "instruction_set": "x86-64",
+    "microarchitecture": "Zen 2",
+    "microcode": "0x830107a",
+    "model": "AMD EPYC",
+    "other_description": "AMD EPYC 7742 64-Core Processor",
+    "vendor": "AMD",
+    "version": 7742
+  },
+  "redfish": true,
+  "software": {
+    "forced-deployment-timestamp": 202007300948,
+    "postinstall-version": "1.2024101411",
+    "standard-environment": "debian11-x64-std"
+  },
+  "storage_devices": [
+    {
+      "by_id": "/dev/disk/by-id/nvme-eui.34333630522580960025384100000001",
+      "by_path": "/dev/disk/by-path/pci-0000:22:00.0-nvme-1",
+      "id": "disk0",
+      "interface": "NVME",
+      "model": "SAMSUNG MZ1LB1T9HALS-00007",
+      "size": 1920383410176,
+      "storage": "SSD",
+      "vendor": "Samsung"
+    },
+    {
+      "by_id": "/dev/disk/by-id/nvme-eui.34333630522580930025384100000001",
+      "by_path": "/dev/disk/by-path/pci-0000:23:00.0-nvme-1",
+      "id": "disk1",
+      "interface": "NVME",
+      "model": "SAMSUNG MZ1LB1T9HALS-00007",
+      "size": 1920383410176,
+      "storage": "SSD",
+      "vendor": "Samsung"
+    },
+    {
+      "by_id": "/dev/disk/by-id/nvme-eui.00000000000000008ce38ee20485ce01",
+      "by_path": "/dev/disk/by-path/pci-0000:09:00.0-nvme-1",
+      "id": "disk2",
+      "interface": "NVME",
+      "model": "KCM6DRUL3T84",
+      "size": 3840755982336,
+      "storage": "SSD",
+      "vendor": "Kioxia"
+    },
+    {
+      "by_id": "/dev/disk/by-id/nvme-eui.00000000000000008ce38ee20486ae01",
+      "by_path": "/dev/disk/by-path/pci-0000:52:00.0-nvme-1",
+      "id": "disk3",
+      "interface": "NVME",
+      "model": "KCM6DRUL3T84",
+      "size": 3840755982336,
+      "storage": "SSD",
+      "vendor": "Kioxia"
+    },
+    {
+      "by_id": "/dev/disk/by-id/nvme-eui.00000000000000008ce38ee20485da01",
+      "by_path": "/dev/disk/by-path/pci-0000:ca:00.0-nvme-1",
+      "id": "disk4",
+      "interface": "NVME",
+      "model": "KCM6DRUL3T84",
+      "size": 3840755982336,
+      "storage": "SSD",
+      "vendor": "Kioxia"
+    },
+    {
+      "by_id": "/dev/disk/by-id/nvme-eui.00000000000000008ce38ee20485e901",
+      "by_path": "/dev/disk/by-path/pci-0000:8a:00.0-nvme-1",
+      "id": "disk5",
+      "interface": "NVME",
+      "model": "KCM6DRUL3T84",
+      "size": 3840755982336,
+      "storage": "SSD",
+      "vendor": "Kioxia"
+    }
+  ],
+  "supported_job_types": {
+    "besteffort": true,
+    "deploy": true,
+    "max_walltime": 0,
+    "queues": [
+      "default",
+      "admin"
+    ],
+    "virtual": "amd-v"
+  },
+  "type": "node",
+  "uid": "sirius-1",
+  "version": "725f657a3869c10021af8a43e4ac2ebfc6619e15",
+  "links": [
+    {
+      "rel": "self",
+      "type": "application/vnd.grid5000.item+json",
+      "href": "/stable/sites/lyon/clusters/sirius/nodes/sirius-1"
+    },
+    {
+      "rel": "parent",
+      "type": "application/vnd.grid5000.item+json",
+      "href": "/stable/sites/lyon/clusters/sirius"
+    },
+    {
+      "rel": "version",
+      "type": "application/vnd.grid5000.item+json",
+      "href": "/stable/sites/lyon/clusters/sirius/nodes/sirius-1/versions/725f657a3869c10021af8a43e4ac2ebfc6619e15"
+    },
+    {
+      "rel": "versions",
+      "type": "application/vnd.grid5000.collection+json",
+      "href": "/stable/sites/lyon/clusters/sirius/nodes/sirius-1/versions"
+    }
+  ]
+}

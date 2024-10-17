@@ -1,0 +1,532 @@
+{
+  "architecture": {
+    "cpu_core_numbering": "contiguous",
+    "nb_cores": 72,
+    "nb_procs": 4,
+    "nb_threads": 144,
+    "platform_type": "x86_64"
+  },
+  "bios": {
+    "release_date": "07/20/2023",
+    "vendor": "HPE",
+    "version": "U34"
+  },
+  "bmc_version": "2.96",
+  "chassis": {
+    "manufactured_at": "2023-11-30",
+    "manufacturer": "HPE",
+    "name": "ProLiant DL560 Gen10",
+    "serial": "CZ23410538",
+    "warranty_end": "2030-11-29"
+  },
+  "exotic": false,
+  "kavlan": {
+    "eth0": {
+      "kavlan-1": "192.168.205.23",
+      "kavlan-11": "10.7.221.31",
+      "kavlan-12": "10.11.221.31",
+      "kavlan-13": "10.15.221.31",
+      "kavlan-14": "10.19.221.31",
+      "kavlan-16": "10.27.221.31",
+      "kavlan-17": "10.31.221.31",
+      "kavlan-18": "10.35.221.31",
+      "kavlan-2": "192.168.221.23",
+      "kavlan-20": "10.43.221.31",
+      "kavlan-21": "10.47.221.31",
+      "kavlan-3": "192.168.237.23",
+      "kavlan-4": "10.16.13.31",
+      "kavlan-5": "10.16.77.31",
+      "kavlan-6": "10.16.141.31",
+      "kavlan-7": "10.16.205.31",
+      "kavlan-8": "10.17.13.31",
+      "kavlan-9": "10.17.77.31"
+    }
+  },
+  "kavlan6": {
+    "eth0": {
+      "kavlan-1": "2001:660:4406:580:6::c",
+      "kavlan-11": "2001:660:4406:1a0:506::c",
+      "kavlan-12": "2001:660:4406:2a0:506::c",
+      "kavlan-13": "2001:660:4406:4a0:506::c",
+      "kavlan-14": "2001:660:4406:5a0:506::c",
+      "kavlan-16": "2001:660:4406:7a0:506::c",
+      "kavlan-17": "2001:660:4406:9a0:506::c",
+      "kavlan-18": "2001:660:4406:8a0:506::c",
+      "kavlan-2": "2001:660:4406:581:6::c",
+      "kavlan-20": "2001:660:4406:3a0:506::c",
+      "kavlan-21": "2001:660:4406:6a0:506::c",
+      "kavlan-3": "2001:660:4406:582:6::c",
+      "kavlan-4": "2001:660:4406:590:6::c",
+      "kavlan-5": "2001:660:4406:591:6::c",
+      "kavlan-6": "2001:660:4406:592:6::c",
+      "kavlan-7": "2001:660:4406:593:6::c",
+      "kavlan-8": "2001:660:4406:594:6::c",
+      "kavlan-9": "2001:660:4406:595:6::c"
+    }
+  },
+  "main_memory": {
+    "ram_size": 6597069766656
+  },
+  "management_tools": {
+    "bmc_vendor_tool": "ipmitool",
+    "ipmitool": {
+      "retries": 5
+    }
+  },
+  "memory_devices": [
+    {
+      "device": "dimm_proc 1 dimm 1",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 1 dimm 10",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 1 dimm 11",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 1 dimm 12",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 1 dimm 2",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 1 dimm 3",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 1 dimm 4",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 1 dimm 5",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 1 dimm 6",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 1 dimm 7",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 1 dimm 8",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 1 dimm 9",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 2 dimm 1",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 2 dimm 10",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 2 dimm 11",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 2 dimm 12",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 2 dimm 2",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 2 dimm 3",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 2 dimm 4",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 2 dimm 5",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 2 dimm 6",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 2 dimm 7",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 2 dimm 8",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 2 dimm 9",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 3 dimm 1",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 3 dimm 10",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 3 dimm 11",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 3 dimm 12",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 3 dimm 2",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 3 dimm 3",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 3 dimm 4",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 3 dimm 5",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 3 dimm 6",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 3 dimm 7",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 3 dimm 8",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 3 dimm 9",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 4 dimm 1",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 4 dimm 10",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 4 dimm 11",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 4 dimm 12",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 4 dimm 2",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 4 dimm 3",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 4 dimm 4",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 4 dimm 5",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 4 dimm 6",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 4 dimm 7",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 4 dimm 8",
+      "size": 137438953472,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_proc 4 dimm 9",
+      "size": 137438953472,
+      "technology": "dram"
+    }
+  ],
+  "network_adapters": [
+    {
+      "device": "eth0",
+      "driver": "ice",
+      "enabled": true,
+      "firmware_version": "4.10 0x80015188 1.3310.0",
+      "interface": "Ethernet",
+      "ip": "172.16.69.12",
+      "ip6": "2001:660:4406:500:6::c",
+      "kavlan": true,
+      "mac": "30:3e:a7:02:bf:54",
+      "management": false,
+      "model": "Ethernet Controller E810-XXV for SFP",
+      "mountable": true,
+      "mounted": true,
+      "name": "ens1f0",
+      "network_address": "grosminet-1.nancy.grid5000.fr",
+      "rate": 25000000000,
+      "sriov": true,
+      "sriov_totalvfs": 128,
+      "switch": "sgruss",
+      "switch_port": "ethernet1/1/6",
+      "vendor": "Intel"
+    },
+    {
+      "device": "eth1",
+      "driver": "ice",
+      "enabled": false,
+      "firmware_version": "4.10 0x80015188 1.3310.0",
+      "interface": "Ethernet",
+      "kavlan": false,
+      "mac": "30:3e:a7:02:bf:55",
+      "management": false,
+      "model": "Ethernet Controller E810-XXV for SFP",
+      "mountable": false,
+      "mounted": false,
+      "name": "ens1f1",
+      "sriov": true,
+      "sriov_totalvfs": 128,
+      "vendor": "Intel"
+    },
+    {
+      "device": "bmc",
+      "enabled": true,
+      "interface": "Ethernet",
+      "ip": "172.17.69.12",
+      "kavlan": false,
+      "mac": "5c:ed:8c:3c:81:be",
+      "management": true,
+      "mountable": false,
+      "mounted": false,
+      "network_address": "grosminet-1-bmc.nancy.grid5000.fr"
+    }
+  ],
+  "nodeset": "grosminet",
+  "operating_system": {
+    "cstate_driver": "intel_idle",
+    "cstate_governor": "menu",
+    "ht_enabled": true,
+    "pstate_driver": "intel_pstate",
+    "pstate_governor": "performance",
+    "turboboost_enabled": true
+  },
+  "performance": {
+    "core_flops": 83200000000,
+    "node_flops": 5990400000000
+  },
+  "processor": {
+    "cache_l1": null,
+    "cache_l1d": 32768,
+    "cache_l1i": 32768,
+    "cache_l2": 1048576,
+    "cache_l3": 25952256,
+    "clock_speed": 2600000000,
+    "ht_capable": true,
+    "instruction_set": "x86-64",
+    "microarchitecture": "Cascade Lake-SP",
+    "microcode": "0x5003604",
+    "model": "Intel Xeon",
+    "other_description": "Intel(R) Xeon(R) Gold 6240L CPU @ 2.60GHz",
+    "vendor": "Intel",
+    "version": "Gold 6240L"
+  },
+  "redfish": true,
+  "software": {
+    "forced-deployment-timestamp": 202007300948,
+    "postinstall-version": "1.2024101411",
+    "standard-environment": "debian11-x64-std"
+  },
+  "storage_devices": [
+    {
+      "by_id": "/dev/disk/by-id/wwn-0x50000f0b02a4b0c0",
+      "by_path": "/dev/disk/by-path/pci-0000:28:00.0-sas-0x50000f0b02a4b0c2-lun-0",
+      "firmware_version": "HPD4",
+      "id": "disk0",
+      "interface": "SAS",
+      "model": "VO001600JWZJQ",
+      "size": 1600321314816,
+      "storage": "SSD",
+      "vendor": "HPE"
+    },
+    {
+      "by_id": "/dev/disk/by-id/wwn-0x50000f0b02a4b0e0",
+      "by_path": "/dev/disk/by-path/pci-0000:28:00.0-sas-0x50000f0b02a4b0e2-lun-0",
+      "firmware_version": "HPD4",
+      "id": "disk1",
+      "interface": "SAS",
+      "model": "VO001600JWZJQ",
+      "size": 1600321314816,
+      "storage": "SSD",
+      "vendor": "HPE"
+    },
+    {
+      "by_id": "/dev/disk/by-id/wwn-0x50000f0b02a4b0f0",
+      "by_path": "/dev/disk/by-path/pci-0000:28:00.0-sas-0x50000f0b02a4b0f2-lun-0",
+      "firmware_version": "HPD4",
+      "id": "disk2",
+      "interface": "SAS",
+      "model": "VO001600JWZJQ",
+      "size": 1600321314816,
+      "storage": "SSD",
+      "vendor": "HPE"
+    },
+    {
+      "by_id": "/dev/disk/by-id/wwn-0x50000f0b02a4b100",
+      "by_path": "/dev/disk/by-path/pci-0000:28:00.0-sas-0x50000f0b02a4b102-lun-0",
+      "firmware_version": "HPD4",
+      "id": "disk3",
+      "interface": "SAS",
+      "model": "VO001600JWZJQ",
+      "size": 1600321314816,
+      "storage": "SSD",
+      "vendor": "HPE"
+    },
+    {
+      "by_id": "/dev/disk/by-id/wwn-0x50000f0b02a4b110",
+      "by_path": "/dev/disk/by-path/pci-0000:28:00.0-sas-0x50000f0b02a4b112-lun-0",
+      "firmware_version": "HPD4",
+      "id": "disk4",
+      "interface": "SAS",
+      "model": "VO001600JWZJQ",
+      "size": 1600321314816,
+      "storage": "SSD",
+      "vendor": "HPE"
+    },
+    {
+      "by_id": "/dev/disk/by-id/wwn-0x50000f0b02a4b120",
+      "by_path": "/dev/disk/by-path/pci-0000:28:00.0-sas-0x50000f0b02a4b122-lun-0",
+      "firmware_version": "HPD4",
+      "id": "disk5",
+      "interface": "SAS",
+      "model": "VO001600JWZJQ",
+      "size": 1600321314816,
+      "storage": "SSD",
+      "vendor": "HPE"
+    },
+    {
+      "by_id": "/dev/disk/by-id/wwn-0x50000f0b02a4b130",
+      "by_path": "/dev/disk/by-path/pci-0000:28:00.0-sas-0x50000f0b02a4b132-lun-0",
+      "firmware_version": "HPD4",
+      "id": "disk6",
+      "interface": "SAS",
+      "model": "VO001600JWZJQ",
+      "size": 1600321314816,
+      "storage": "SSD",
+      "vendor": "HPE"
+    },
+    {
+      "by_id": "/dev/disk/by-id/wwn-0x50000f0b02a4b180",
+      "by_path": "/dev/disk/by-path/pci-0000:28:00.0-sas-0x50000f0b02a4b182-lun-0",
+      "firmware_version": "HPD4",
+      "id": "disk7",
+      "interface": "SAS",
+      "model": "VO001600JWZJQ",
+      "size": 1600321314816,
+      "storage": "SSD",
+      "vendor": "HPE"
+    }
+  ],
+  "supported_job_types": {
+    "besteffort": true,
+    "deploy": true,
+    "max_walltime": 86400,
+    "queues": [
+      "admin",
+      "production"
+    ],
+    "virtual": "ivt"
+  },
+  "type": "node",
+  "uid": "grosminet-1",
+  "version": "725f657a3869c10021af8a43e4ac2ebfc6619e15",
+  "links": [
+    {
+      "rel": "self",
+      "type": "application/vnd.grid5000.item+json",
+      "href": "/stable/sites/nancy/clusters/grosminet/nodes/grosminet-1"
+    },
+    {
+      "rel": "parent",
+      "type": "application/vnd.grid5000.item+json",
+      "href": "/stable/sites/nancy/clusters/grosminet"
+    },
+    {
+      "rel": "version",
+      "type": "application/vnd.grid5000.item+json",
+      "href": "/stable/sites/nancy/clusters/grosminet/nodes/grosminet-1/versions/725f657a3869c10021af8a43e4ac2ebfc6619e15"
+    },
+    {
+      "rel": "versions",
+      "type": "application/vnd.grid5000.collection+json",
+      "href": "/stable/sites/nancy/clusters/grosminet/nodes/grosminet-1/versions"
+    }
+  ]
+}

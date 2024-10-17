@@ -1,0 +1,456 @@
+{
+  "architecture": {
+    "cpu_core_numbering": "contiguous",
+    "nb_cores": 48,
+    "nb_procs": 1,
+    "nb_threads": 96,
+    "platform_type": "x86_64"
+  },
+  "bios": {
+    "release_date": "06/17/2020",
+    "vendor": "GIGABYTE",
+    "version": "R23"
+  },
+  "bmc_version": "12.45",
+  "chassis": {
+    "manufactured_at": "2021-05-17",
+    "manufacturer": "Penguin Computing",
+    "name": "AMD-Penguin COVID19",
+    "serial": "P100228621",
+    "warranty_end": "2023-05-17"
+  },
+  "exotic": true,
+  "gpu_devices": {
+    "card0": {
+      "cores": 5120,
+      "cpu_affinity": 0,
+      "device": "/dev/dri/card0",
+      "memory": 34359738368,
+      "microarchitecture": "Vega20",
+      "model": "Radeon Instinct MI50 32GB",
+      "performance": {
+        "fp-16": 26820000000000,
+        "fp-32": 13410000000000,
+        "fp-64": 510000000000
+      },
+      "power_default_limit": 225.0,
+      "vbios_version": "113-D1631700-111",
+      "vendor": "AMD"
+    },
+    "card1": {
+      "cores": 5120,
+      "cpu_affinity": 0,
+      "device": "/dev/dri/card1",
+      "memory": 34359738368,
+      "microarchitecture": "Vega20",
+      "model": "Radeon Instinct MI50 32GB",
+      "performance": {
+        "fp-16": 26820000000000,
+        "fp-32": 13410000000000,
+        "fp-64": 510000000000
+      },
+      "power_default_limit": 225.0,
+      "vbios_version": "113-D1631700-111",
+      "vendor": "AMD"
+    },
+    "card2": {
+      "cores": 5120,
+      "cpu_affinity": 0,
+      "device": "/dev/dri/card2",
+      "memory": 34359738368,
+      "microarchitecture": "Vega20",
+      "model": "Radeon Instinct MI50 32GB",
+      "performance": {
+        "fp-16": 26820000000000,
+        "fp-32": 13410000000000,
+        "fp-64": 510000000000
+      },
+      "power_default_limit": 225.0,
+      "vbios_version": "113-D1631700-111",
+      "vendor": "AMD"
+    },
+    "card3": {
+      "cores": 5120,
+      "cpu_affinity": 0,
+      "device": "/dev/dri/card3",
+      "memory": 34359738368,
+      "microarchitecture": "Vega20",
+      "model": "Radeon Instinct MI50 32GB",
+      "performance": {
+        "fp-16": 26820000000000,
+        "fp-32": 13410000000000,
+        "fp-64": 510000000000
+      },
+      "power_default_limit": 225.0,
+      "vbios_version": "113-D1631700-111",
+      "vendor": "AMD"
+    },
+    "card4": {
+      "cores": 5120,
+      "cpu_affinity": 0,
+      "device": "/dev/dri/card4",
+      "memory": 34359738368,
+      "microarchitecture": "Vega20",
+      "model": "Radeon Instinct MI50 32GB",
+      "performance": {
+        "fp-16": 26820000000000,
+        "fp-32": 13410000000000,
+        "fp-64": 510000000000
+      },
+      "power_default_limit": 225.0,
+      "vbios_version": "113-D1631700-111",
+      "vendor": "AMD"
+    },
+    "card5": {
+      "cores": 5120,
+      "cpu_affinity": 0,
+      "device": "/dev/dri/card5",
+      "memory": 34359738368,
+      "microarchitecture": "Vega20",
+      "model": "Radeon Instinct MI50 32GB",
+      "performance": {
+        "fp-16": 26820000000000,
+        "fp-32": 13410000000000,
+        "fp-64": 510000000000
+      },
+      "power_default_limit": 225.0,
+      "vbios_version": "113-D1631700-111",
+      "vendor": "AMD"
+    },
+    "card6": {
+      "cores": 5120,
+      "cpu_affinity": 0,
+      "device": "/dev/dri/card6",
+      "memory": 34359738368,
+      "microarchitecture": "Vega20",
+      "model": "Radeon Instinct MI50 32GB",
+      "performance": {
+        "fp-16": 26820000000000,
+        "fp-32": 13410000000000,
+        "fp-64": 510000000000
+      },
+      "power_default_limit": 225.0,
+      "vbios_version": "113-D1631700-111",
+      "vendor": "AMD"
+    },
+    "card7": {
+      "cores": 5120,
+      "cpu_affinity": 0,
+      "device": "/dev/dri/card7",
+      "memory": 34359738368,
+      "microarchitecture": "Vega20",
+      "model": "Radeon Instinct MI50 32GB",
+      "performance": {
+        "fp-16": 26820000000000,
+        "fp-32": 13410000000000,
+        "fp-64": 510000000000
+      },
+      "power_default_limit": 225.0,
+      "vbios_version": "113-D1631700-111",
+      "vendor": "AMD"
+    }
+  },
+  "kavlan": {
+    "eth0": {
+      "kavlan-1": "192.168.199.1",
+      "kavlan-11": "10.7.212.1",
+      "kavlan-12": "10.11.212.1",
+      "kavlan-13": "10.15.212.1",
+      "kavlan-14": "10.19.212.1",
+      "kavlan-16": "10.27.212.1",
+      "kavlan-17": "10.31.212.1",
+      "kavlan-18": "10.35.212.1",
+      "kavlan-2": "192.168.215.1",
+      "kavlan-20": "10.43.212.1",
+      "kavlan-21": "10.47.212.1",
+      "kavlan-3": "192.168.231.1",
+      "kavlan-4": "10.12.7.1",
+      "kavlan-5": "10.12.71.1",
+      "kavlan-6": "10.12.135.1",
+      "kavlan-7": "10.12.199.1",
+      "kavlan-8": "10.13.7.1",
+      "kavlan-9": "10.13.71.1"
+    }
+  },
+  "kavlan6": {
+    "eth0": {
+      "kavlan-1": "2001:660:4406:480:8::1",
+      "kavlan-11": "2001:660:4406:1a0:408::1",
+      "kavlan-12": "2001:660:4406:2a0:408::1",
+      "kavlan-13": "2001:660:4406:4a0:408::1",
+      "kavlan-14": "2001:660:4406:5a0:408::1",
+      "kavlan-16": "2001:660:4406:7a0:408::1",
+      "kavlan-17": "2001:660:4406:9a0:408::1",
+      "kavlan-18": "2001:660:4406:8a0:408::1",
+      "kavlan-2": "2001:660:4406:481:8::1",
+      "kavlan-20": "2001:660:4406:3a0:408::1",
+      "kavlan-21": "2001:660:4406:6a0:408::1",
+      "kavlan-3": "2001:660:4406:482:8::1",
+      "kavlan-4": "2001:660:4406:490:8::1",
+      "kavlan-5": "2001:660:4406:491:8::1",
+      "kavlan-6": "2001:660:4406:492:8::1",
+      "kavlan-7": "2001:660:4406:493:8::1",
+      "kavlan-8": "2001:660:4406:494:8::1",
+      "kavlan-9": "2001:660:4406:495:8::1"
+    }
+  },
+  "main_memory": {
+    "ram_size": 549755813888
+  },
+  "management_tools": {
+    "bmc_vendor_tool": "ipmitool",
+    "ipmitool": {
+      "retries": 5
+    }
+  },
+  "memory_devices": [
+    {
+      "device": "dimm_p0_a0",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_p0_b0",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_p0_c0",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_p0_d0",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_p0_e0",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_p0_f0",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_p0_g0",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    },
+    {
+      "device": "dimm_p0_h0",
+      "firmware": "Unknown",
+      "size": 68719476736,
+      "technology": "dram"
+    }
+  ],
+  "network_adapters": [
+    {
+      "device": "eth0",
+      "driver": "mlx5_core",
+      "enabled": true,
+      "firmware_version": "14.22.1002 (GIG0000000005)",
+      "interface": "Ethernet",
+      "ip": "172.16.55.1",
+      "ip6": "2001:660:4406:400:8::1",
+      "kavlan": true,
+      "mac": "18:c0:4d:11:37:a1",
+      "management": false,
+      "model": "MT27710 Family [ConnectX-4 Lx]",
+      "mountable": true,
+      "mounted": true,
+      "name": "eno1",
+      "network_address": "neowise-1.lyon.grid5000.fr",
+      "rate": 10000000000,
+      "sriov": true,
+      "sriov_totalvfs": 8,
+      "switch": "gw",
+      "switch_port": "ethernet1/1/11",
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "eth1",
+      "driver": "mlx5_core",
+      "enabled": true,
+      "firmware_version": "14.22.1002 (GIG0000000005)",
+      "interface": "Ethernet",
+      "ip": "172.16.55.11",
+      "ip6": "2001:660:4406:400:8:1:0:1",
+      "kavlan": false,
+      "mac": "18:c0:4d:11:37:a2",
+      "management": false,
+      "model": "MT27710 Family [ConnectX-4 Lx]",
+      "mountable": true,
+      "mounted": false,
+      "name": "eno2",
+      "network_address": "neowise-1-eth1.lyon.grid5000.fr",
+      "rate": 10000000000,
+      "sriov": true,
+      "sriov_totalvfs": 8,
+      "switch": "sneowise",
+      "switch_port": "1/1",
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "ib0",
+      "driver": "mlx5_core",
+      "enabled": true,
+      "firmware_version": "20.29.2002",
+      "guid": "0x0c42a10300a0fc24",
+      "interface": "InfiniBand",
+      "ip": "172.18.55.1",
+      "kavlan": false,
+      "mac": "0c:42:a1:03:00:a0:fc:24",
+      "management": false,
+      "model": "MT28908 Family [ConnectX-6]",
+      "mountable": true,
+      "mounted": true,
+      "name": "ib0",
+      "netmask": "255.255.240.0",
+      "network_address": "neowise-1-ib0.lyon.grid5000.fr",
+      "rate": 100000000000,
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "ib1",
+      "driver": "mlx5_core",
+      "enabled": true,
+      "firmware_version": "20.29.2002",
+      "guid": "0x0c42a10300a0f1e8",
+      "interface": "InfiniBand",
+      "kavlan": false,
+      "mac": "0c:42:a1:03:00:a0:f1:e8",
+      "management": false,
+      "model": "MT28908 Family [ConnectX-6]",
+      "mountable": true,
+      "mounted": false,
+      "name": "ib1",
+      "network_address": "neowise-1-ib1.lyon.grid5000.fr",
+      "rate": 100000000000,
+      "vendor": "Mellanox Technologies"
+    },
+    {
+      "device": "bmc",
+      "enabled": true,
+      "interface": "Ethernet",
+      "ip": "172.17.55.1",
+      "kavlan": false,
+      "mac": "18:c0:4d:11:37:a3",
+      "management": true,
+      "mountable": false,
+      "mounted": false,
+      "network_address": "neowise-1-bmc.lyon.grid5000.fr"
+    }
+  ],
+  "nodeset": "neowise",
+  "operating_system": {
+    "cstate_driver": "acpi_idle",
+    "cstate_governor": "menu",
+    "ht_enabled": true,
+    "pstate_driver": "acpi-cpufreq",
+    "pstate_governor": "performance",
+    "turboboost_enabled": true
+  },
+  "pdu": [
+    {
+      "port": 14,
+      "uid": "pdu1a"
+    },
+    {
+      "port": 14,
+      "uid": "pdu1b"
+    },
+    {
+      "kind": "wattmetre-only",
+      "port": 12,
+      "uid": "wattmetrev3-1"
+    },
+    {
+      "kind": "wattmetre-only",
+      "port": 18,
+      "uid": "wattmetrev3-1"
+    }
+  ],
+  "performance": {
+    "core_flops": 33600000000,
+    "node_flops": 1612800000000
+  },
+  "processor": {
+    "cache_l1": null,
+    "cache_l1d": 32768,
+    "cache_l1i": 32768,
+    "cache_l2": 524288,
+    "cache_l3": 16777216,
+    "clock_speed": 2100000000,
+    "ht_capable": true,
+    "instruction_set": "x86-64",
+    "microarchitecture": "Zen 2",
+    "microcode": "0x830107a",
+    "model": "AMD EPYC",
+    "other_description": "AMD EPYC 7642 48-Core Processor",
+    "vendor": "AMD",
+    "version": 7642
+  },
+  "redfish": true,
+  "software": {
+    "forced-deployment-timestamp": 202007300948,
+    "postinstall-version": "1.2024101411",
+    "standard-environment": "debian11-x64-std"
+  },
+  "storage_devices": [
+    {
+      "by_id": "/dev/disk/by-id/nvme-eui.343336304e5312830025384100000001",
+      "by_path": "/dev/disk/by-path/pci-0000:82:00.0-nvme-1",
+      "id": "disk0",
+      "interface": "NVME",
+      "model": "SAMSUNG MZ1LB1T9HALS-00007",
+      "size": 1920383410176,
+      "storage": "SSD",
+      "vendor": "Samsung"
+    }
+  ],
+  "supported_job_types": {
+    "besteffort": true,
+    "deploy": true,
+    "max_walltime": 0,
+    "queues": [
+      "default",
+      "admin"
+    ],
+    "virtual": "amd-v"
+  },
+  "type": "node",
+  "uid": "neowise-1",
+  "version": "725f657a3869c10021af8a43e4ac2ebfc6619e15",
+  "links": [
+    {
+      "rel": "self",
+      "type": "application/vnd.grid5000.item+json",
+      "href": "/stable/sites/lyon/clusters/neowise/nodes/neowise-1"
+    },
+    {
+      "rel": "parent",
+      "type": "application/vnd.grid5000.item+json",
+      "href": "/stable/sites/lyon/clusters/neowise"
+    },
+    {
+      "rel": "version",
+      "type": "application/vnd.grid5000.item+json",
+      "href": "/stable/sites/lyon/clusters/neowise/nodes/neowise-1/versions/725f657a3869c10021af8a43e4ac2ebfc6619e15"
+    },
+    {
+      "rel": "versions",
+      "type": "application/vnd.grid5000.collection+json",
+      "href": "/stable/sites/lyon/clusters/neowise/nodes/neowise-1/versions"
+    }
+  ]
+}
