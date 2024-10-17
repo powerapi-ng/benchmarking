@@ -6,13 +6,8 @@
 # ERROR - Provides all but debug, info and warn
 #
 # SEVERE and CRITICAL are also supported levels as extremes of ERROR
-#
-#################################################################################
-#          ##      END OF GLOBAL VARIABLE CONFIGURATION      ##
-#################################################################################
-
 function logThis() {
-    LOG_DIRECTORY="/home/naleblon/powerapi/repositories/benchmarking/logs.d/"
+    LOG_DIRECTORY="./logs.d/"
     LOG_FILE="$(date +%Y-%m-%d)-${1}.log"
     dateTime=$(date +%2H:%2M:%2S.%3N)
 
