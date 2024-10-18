@@ -1,3 +1,4 @@
-/logs.d/
+/logs.d/**/*
 .env
 /inventories.d/**/*
+/tasks.d/**/*
