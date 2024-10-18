@@ -17,7 +17,7 @@ function logThis() {
         echo "${dateTime} - ERROR : INPUTS WERE: ${1}, ${2} and ${3}."
         exit 1
     fi
-
+    APP_NAME="${1}"
     logMessage="${2}"
     logMessagePriority="${3}"
 
