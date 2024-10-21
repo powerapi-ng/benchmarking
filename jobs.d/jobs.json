@@ -1,0 +1,31 @@
+{
+  "jobs": [
+    {
+      "id":  1,
+      "oar_job_id": null,
+      "status": "TODO",
+      "task": "perf",
+      "command": "dockr rn hwpc mes_ptit_param",
+      "result_file": "./results.d/rennes/abacus19/abacus19-1-perf.json",
+      "metadata_file": "./inventories.d/rennes/abacus19/abacus19-1.json"
+    },
+    {
+      "id":  2,
+      "oar_job_id": null,
+      "status": "TODO",
+      "task": "hwpc",
+      "command": "dockr rn hwpc mes_ptit_param",
+      "result_file": "./results.d/rennes/abacus14/abacus14-1-perf.json",
+      "metadata_file": "./inventories.d/rennes/abacus14/abacus14-1.json"
+    },
+    {
+      "id":  3,
+      "oar_job_id": null,
+      "status": "TODO",
+      "task": "smartwatts",
+      "command": "dockr rn hwpc mes_ptit_param",
+      "result_file": "./results.d/rennes/abacus2/abacus2-1-perf.json",
+      "metadata_file": "./inventories.d/rennes/abacus2/abacus2-1.json"
+    }
+  ]
+}

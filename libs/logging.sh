@@ -8,7 +8,7 @@
 # SEVERE and CRITICAL are also supported levels as extremes of ERROR
 function logThis() {
     LOG_DIRECTORY="./logs.d/"
-    LOG_FILE="$(date +%Y-%m-%d)-${1}.log"
+    LOG_FILE="$(date +%Y-%m-%d)-$(echo $1 | cut -d'/' -f1).log"
     dateTime=$(date +%2H:%2M:%2S.%3N)
 
     if [[ -z "${1}" || -z "${2}" || -z "${3}" ]]
