@@ -5,15 +5,15 @@ set -ueo pipefail
 
 source .env
 
+### LOGGING
+LOGGIN_DIR="./logs.d"
+SCRIPT_LOGGING_LEVEL=${LOG_LEVEL:-"DEBUG"}
+source libs/logging.sh
+
 ### JOBS 
 JOBS_DIR="./jobs.d"
 JOBS_FILE="${JOBS_DIR}/jobs.json"
 source libs/jobs.sh
-
-### LOGGING
-LOGGIN_DIR="./logs.d"
-SCRIPT_LOGGING_LEVEL="${LOG_LEVEL:-"DEBUG"}"
-source libs/logging.sh
 
 ### Inventory
 INVENTORY_DIR="./inventory.d"

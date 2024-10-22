@@ -21,7 +21,6 @@ function generate_inventory {
     local NODE_ENDPOINT=""
     local NODE_ENDPOINT_SUFFIX=".json?pretty"
     local INVENTORY_DIRECTORY="$1"
-    local SCRIPT_LOGGING_LEVEL="DEBUG"
 
     logThis "inventory" "Remove old inventory files to update" "INFO" || true
     find ./inventories.d/ -type f -mtime +7 -exec rm {} \;
@@ -69,13 +68,11 @@ function generate_inventory {
 
 function get_inventory_sites {
     local INVENTORY_DIRECTORY="$1"
-    local SCRIPT_LOGGING_LEVEL="DEBUG"
     echo "$(find $INVENTORY_DIRECTORY -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)"
 }
 function get_inventory_site_clusters {
     local INVENTORY_DIRECTORY="$1"
     local SITE="$2"
-    local SCRIPT_LOGGING_LEVEL="DEBUG"
     echo "$(find $INVENTORY_DIRECTORY/$SITE/ -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)"
 }
 
@@ -83,6 +80,5 @@ function get_inventory_site_cluster_nodes {
     local INVENTORY_DIRECTORY="$1"
     local SITE="$2"
     local CLUSTER="$3"
-    local SCRIPT_LOGGING_LEVEL="DEBUG"
     echo "$(find $INVENTORY_DIRECTORY/$SITE/$CLUSTER/ -maxdepth 1 -mindepth 1 -type f -exec basename {} \;)"
 }

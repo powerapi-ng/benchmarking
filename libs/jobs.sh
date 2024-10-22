@@ -1,12 +1,12 @@
 #!/bin/bash
 function process_jobs {
     local JOBS_FIFO=$1
-    logThis "jobs/process_jobs" "Start submitting jobs" "INFO"
+    logThis "jobs/process_jobs" "Start submitting jobs" "INFO" || true
     while read job; do
-      logThis "jobs/process_jobs" "Submit job > '$job'" "INFO"
+      logThis "jobs/process_jobs" "Submit job > '$job'" "INFO" || true
       sleep 1
     done < "$JOBS_FIFO"
-    logThis "jobs/process_jobs" "All jobs have been submitted" "INFO"
+    logThis "jobs/process_jobs" "All jobs have been submitted" "INFO" || true
     
     rm -f "$JOBS_FIFO"
 }
@@ -19,7 +19,7 @@ function submit_job {
     local COMMAND="$5"
     local RESULT_FILE="$6"
     local PID="$7"
-    logThis "jobs/submit_job" "Submited : hhs $SITE oarsub -p $NODE -l host=1,walltime=$WALLTIME $COMMAND $RESULT_FILE" "INFO"
+    logThis "jobs/submit_job" "Submited : hhs $SITE oarsub -p $NODE -l host=1,walltime=$WALLTIME $COMMAND $RESULT_FILE" "INFO" || true
     echo $PID
 }
 
@@ -46,10 +46,10 @@ function generate_jobs {
     
     for SITE in ${SITES[@]}; do
         CLUSTERS="$(get_inventory_site_clusters ./inventories.d/ $SITE)"
-        logThis "jobs/generate_jobs" "Processing clusters in $SITE" "DEBUG"
+        logThis "jobs/generate_jobs" "Processing clusters in $SITE" "DEBUG" || true
         for CLUSTER in ${CLUSTERS[@]}; do
             NODES="$(get_inventory_site_cluster_nodes ./inventories.d/ $SITE $CLUSTER)"
-            logThis "jobs/generate_jobs" "Processing nodes in $CLUSTER" "DEBUG"
+            logThis "jobs/generate_jobs" "Processing nodes in $CLUSTER" "DEBUG" || true
             for NODE in ${NODES[@]}; do
                 NODE_NAME="$(basename $NODE .json)"
                 TASK="perf"
@@ -78,7 +78,7 @@ function check_on_unfinished_jobs {
     for WAITING_JOB in ${WAITING_JOBS[@]}; do
         CURRENT_STATE="$(ssh lille oarstat -f -j $WAITING_JOB | grep 'state = ' | awk -F' ' '{print $3 }')"
         if [[ "$CURRENT_STATE" == "Waiting" ]]; then
-            logThis "jobs/check_on_unfinished_jobs" "Job $WAITING_JOB still waiting" "DEBUG"
+            logThis "jobs/check_on_unfinished_jobs" "Job $WAITING_JOB still waiting" "DEBUG" || true
         else
             yq -i ".jobs[] | select(.oar_job_id == $(( WAITING_JOB ))) | .state = $CURRENT_STATE" $JOBS_FILE
         fi
@@ -89,7 +89,7 @@ function check_on_unfinished_jobs {
     for RUNNING_JOB in ${RUNNING_JOBS[@]}; do
         CURRENT_STATE="$(ssh lille oarstat -f -j $RUNNING_JOB | grep 'state = ' | awk -F' ' '{print $3 }')"
         if [[ "$CURRENT_STATE" == "Running" ]]; then
-            logThis "jobs/check_on_unfinished_jobs" "Job $RUNNING_JOB still running" "DEBUG"
+            logThis "jobs/check_on_unfinished_jobs" "Job $RUNNING_JOB still running" "DEBUG" || true
         else
             yq -i ".jobs[] | select(.oar_job_id == $(( RUNNING_JOB ))) | .state = $CURRENT_STATE" $JOBS_FILE
         fi

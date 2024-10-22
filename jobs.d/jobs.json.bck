@@ -467,60 +467,6 @@
       "command": "dockr rn hwpc mes_ptit_param",
       "result_file": "./results.d/lyon/taurus/taurus-1-perf.json",
       "metadata_file": "./inventories.d/lyon/taurus/taurus-1.json"
-    },
-    {
-      "id": 53,
-      "oar_job_id": 53,
-      "state": "Waiting",
-      "task": "perf",
-      "command": "dockr rn hwpc mes_ptit_param",
-      "result_file": "./results.d/lyon/taurus/taurus-9-perf.json",
-      "metadata_file": "./inventories.d/lyon/taurus/taurus-9.json"
-    },
-    {
-      "id": 54,
-      "oar_job_id": 54,
-      "state": "Waiting",
-      "task": "perf",
-      "command": "dockr rn hwpc mes_ptit_param",
-      "result_file": "./results.d/lyon/taurus/taurus-3-perf.json",
-      "metadata_file": "./inventories.d/lyon/taurus/taurus-3.json"
-    },
-    {
-      "id": 55,
-      "oar_job_id": 55,
-      "state": "Waiting",
-      "task": "perf",
-      "command": "dockr rn hwpc mes_ptit_param",
-      "result_file": "./results.d/lyon/sagittaire/sagittaire-2-perf.json",
-      "metadata_file": "./inventories.d/lyon/sagittaire/sagittaire-2.json"
-    },
-    {
-      "id": 56,
-      "oar_job_id": 56,
-      "state": "Waiting",
-      "task": "perf",
-      "command": "dockr rn hwpc mes_ptit_param",
-      "result_file": "./results.d/lyon/sagittaire/sagittaire-13-perf.json",
-      "metadata_file": "./inventories.d/lyon/sagittaire/sagittaire-13.json"
-    },
-    {
-      "id": 57,
-      "oar_job_id": 57,
-      "state": "Waiting",
-      "task": "perf",
-      "command": "dockr rn hwpc mes_ptit_param",
-      "result_file": "./results.d/lyon/sagittaire/sagittaire-15-perf.json",
-      "metadata_file": "./inventories.d/lyon/sagittaire/sagittaire-15.json"
-    },
-    {
-      "id": 58,
-      "oar_job_id": 58,
-      "state": "Waiting",
-      "task": "perf",
-      "command": "dockr rn hwpc mes_ptit_param",
-      "result_file": "./results.d/lyon/sagittaire/sagittaire-4-perf.json",
-      "metadata_file": "./inventories.d/lyon/sagittaire/sagittaire-4.json"
     }
   ]
 }
