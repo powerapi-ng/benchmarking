@@ -1,4 +1,7 @@
 #!/bin/bash
+
+source ./libs/scripts.sh
+
 function process_jobs {
     local JOBS_FIFO=$1
     logThis "jobs/process_jobs" "Start submitting jobs" "INFO" || true
@@ -12,14 +15,15 @@ function process_jobs {
 }
 
 function submit_job {
-    local WALLTIME="$1"
-    local SITE="$2"
-    local CLUSTER="$3"
-    local NODE="$4"
-    local COMMAND="$5"
-    local RESULT_FILE="$6"
-    local PID="$7"
-    logThis "jobs/submit_job" "Submited : hhs $SITE oarsub -p $NODE -l host=1,walltime=$WALLTIME $COMMAND $RESULT_FILE" "INFO" || true
+    local SITE="$1"
+    local SCRIPT_FILE="$2"
+    local NODE="$3"
+    local PID="$4"
+
+    make_script_executable $SCRIPT_FILE
+    logThis "jobs/submit_job" "Upload : pcs $SCRIPT_FILE $SITE:$SCRIPT_FILE " "INFO" || true
+    logThis "jobs/submit_job" "Submited : hhs $SITE oarsub -S $SCRIPT_FILE" "INFO" || true
+
     echo $PID
 }
 
@@ -29,11 +33,11 @@ function add_job {
     local ID="$2"
     local OAR_JOB_ID="$3"
     local TASK="$4"
-    local COMMAND="$5"
+    local SCRIPT_FILE="$5"
     local RESULT_FILE="$6"
     local METADATA_FILE="$7"
 
-    yq -i ".jobs += {\"id\": $(( ID )), \"oar_job_id\": $(( OAR_JOB_ID )), \"state\":\"$STATE\", \"task\":\"$TASK\", \"command\":\"$COMMAND\", \"result_file\":\"$RESULT_FILE\", \"metadata_file\": \"$METADATA_FILE\" }" $JOBS_FILE
+    yq -i ".jobs += {\"id\": $(( ID )), \"oar_job_id\": $(( OAR_JOB_ID )), \"state\":\"$STATE\", \"task\":\"$TASK\", \"script_file\":\"$SCRIPT_FILE\", \"result_file\":\"$RESULT_FILE\", \"metadata_file\": \"$METADATA_FILE\" }" $JOBS_FILE
 }
 
 function generate_jobs {
@@ -53,18 +57,21 @@ function generate_jobs {
             for NODE in ${NODES[@]}; do
                 NODE_NAME="$(basename $NODE .json)"
                 TASK="perf"
-                COMMAND="dockr rn hwpc mes_ptit_param"
-                RESULT_FILE="./results.d/${SITE}/${CLUSTER}/${NODE_NAME}-${TASK}-raw.json"
+                SCRIPT_FILE="./scripts.d/${SITE}/${CLUSTER}/${NODE_NAME}-${TASK}.sh"
+                RESULT_FILE="./results.d/${SITE}/${CLUSTER}/${NODE_NAME}-${TASK}-raw.csv"
                 METADATA_FILE="./inventories.d/${SITE}/${CLUSTER}/${NODE_NAME}.json"
+                
+                generate_script_file $TASK $WALLTIME $NODE $RESULT_FILE "FALSE" 
 
-                OAR_JOB_ID="$(submit_job "$WALLTIME" "$SITE" "$CLUSTER" "$NODE_NAME" "$COMMAND" "$RESULT_FILE" "$ID")"
-                add_job "$JOBS_FILE" "$ID" "$OAR_JOB_ID" "$TASK" "$COMMAND" "$RESULT_FILE" "$METADATA_FILE"
+                OAR_JOB_ID="$(submit_job "$SITE" "$SCRIPT_FILE" "$NODE_NAME" "$ID")"
+                add_job "$JOBS_FILE" "$ID" "$OAR_JOB_ID" "$TASK" "$SCRIPT_FILE" "$RESULT_FILE" "$METADATA_FILE"
 
                 ID=$(( ID + 1 ))
                 #echo "  PROCESSOR model : $(yq '.processor.model' ./inventories.d/$SITE/$CLUSTER/$NODE)"
                 #echo "  PROCESSOR version : $(yq '.processor.version' ./inventories.d/$SITE/$CLUSTER/$NODE)"
                 #echo "  PROCESSOR instruction_set : $(yq '.processor.instruction_set' ./inventories.d/$SITE/$CLUSTER/$NODE)"
                 #echo "  PROCESSOR microarchitecture : $(yq '.processor.microarchitecture' ./inventories.d/$SITE/$CLUSTER/$NODE)"
+                sleep 10
             done
         done
     done

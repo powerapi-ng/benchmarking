@@ -2,5 +2,7 @@
 .env
 /bin/bash: ligne 1: q : commande introuvable
 /tasks.d/**/*
-#/jobs.d/**/*
-#/results.d/**/*
+/jobs.d/**/*
+/results.d/**/*
+/scripts.d/**/*
+/inventories.d/**/*
