@@ -54,7 +54,7 @@ function generate_jobs {
                 NODE_NAME="$(basename $NODE .json)"
                 TASK="perf"
                 COMMAND="dockr rn hwpc mes_ptit_param"
-                RESULT_FILE="./results.d/${SITE}/${CLUSTER}/${NODE_NAME}-${TASK}.json"
+                RESULT_FILE="./results.d/${SITE}/${CLUSTER}/${NODE_NAME}-${TASK}-raw.json"
                 METADATA_FILE="./inventories.d/${SITE}/${CLUSTER}/${NODE_NAME}.json"
 
                 OAR_JOB_ID="$(submit_job "$WALLTIME" "$SITE" "$CLUSTER" "$NODE_NAME" "$COMMAND" "$RESULT_FILE" "$ID")"

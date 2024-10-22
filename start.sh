@@ -36,7 +36,14 @@ function main {
     fi
     process_jobs $JOBS_FILE $RESULTS_DIR
 
-    echo "process_results $RESULTS_DIR"
+    while ! job_is_done $JOBS_FILE ; do 
+        logThis "main" "Job not done" "DEBUG" || true
+        check_on_unfinished_jobs $JOBS_FILE
+    done
+
+    logThis "main" "Job is done" "DEBUG" || true
+
+    echo "process_raw_results $RESULTS_DIR"
 
     echo "report_results $RESULTS_DIR"
 }
