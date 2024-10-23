@@ -7,7 +7,6 @@
 #
 # SEVERE and CRITICAL are also supported levels as extremes of ERROR
 function logThis() {
-    LOG_DIRECTORY="./logs.d/"
     LOG_FILE="$(date +%Y-%m-%d)-$(echo $1 | cut -d'/' -f1).log"
     dateTime=$(date +%2H:%2M:%2S.%3N)
 
@@ -25,7 +24,7 @@ function logThis() {
     [[ ${logPriorities[$logMessagePriority]} ]] || return 1
     (( ${logPriorities[$logMessagePriority]} < ${logPriorities[$SCRIPT_LOGGING_LEVEL]} )) && return 2
 
-    echo "timestamp:${dateTime}|PID:$$|application_name:${APP_NAME}|log_level:${logMessagePriority}|message:${logMessage}" >> "${LOG_DIRECTORY}${LOG_FILE}"
+    echo "timestamp:${dateTime}|PID:$$|application_name:${APP_NAME}|log_level:${logMessagePriority}|message:${logMessage}" >> "${LOGGING_DIR}/${LOG_FILE}"
 }
 
 

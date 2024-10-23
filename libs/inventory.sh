@@ -20,17 +20,17 @@ function generate_inventory {
     local NODES_ENDPOINT="nodes"
     local NODE_ENDPOINT=""
     local NODE_ENDPOINT_SUFFIX=".json?pretty"
-    local INVENTORY_DIRECTORY="$1"
+    local INVENTORIES_DIR="$1"
 
     logThis "inventory" "Remove old inventory files to update" "INFO" || true
-    find ./inventories.d/ -type f -mtime +7 -exec rm {} \;
+    find $INVENTORIES_DIR -type f -mtime +7 -exec rm {} \;
     
     SITES="$(get_api_call "${BASE_API_URI}${SITES_ENDPOINT}")"
     mapfile -t SITES_UID < <(echo "${SITES}" | yq '.items[] | .uid')
     
     for SITE_UID in "${SITES_UID[@]}"; do
         logThis "inventory" "Processing site: ${SITE_UID}" "DEBUG" || true
-        mkdir -p "$INVENTORY_DIRECTORY/$SITE_UID/"
+        mkdir -p "$INVENTORIES_DIR/$SITE_UID/"
         
         SITE_API_URI="${BASE_API_URI}${SITES_ENDPOINT}/${SITE_UID}/"
         CLUSTERS="$(get_api_call "${SITE_API_URI}${CLUSTERS_ENDPOINT}")"
@@ -38,7 +38,7 @@ function generate_inventory {
 
         for CLUSTER_UID in "${CLUSTERS_UID[@]}"; do
             logThis "inventory" "Processing cluster: ${SITE_UID}/${CLUSTER_UID}" "DEBUG" || true
-            mkdir -p "$INVENTORY_DIRECTORY/$SITE_UID/$CLUSTER_UID/"
+            mkdir -p "$INVENTORIES_DIR/$SITE_UID/$CLUSTER_UID/"
             
             CLUSTER_API_URI="${SITE_API_URI}${CLUSTERS_ENDPOINT}/${CLUSTER_UID}/"
             NODES="$(get_api_call "${CLUSTER_API_URI}${NODES_ENDPOINT}")"
@@ -47,7 +47,7 @@ function generate_inventory {
 
             for NODE_UID in "${NODES_UID[@]}"; do
                 logThis "inventory" "Processing node: ${SITE_UID}/${CLUSTER_UID}/${NODE_UID}" "DEBUG" || true
-                NODE_SPECS_FILE_PATH="$INVENTORY_DIRECTORY/$SITE_UID/$CLUSTER_UID/$NODE_UID.json"
+                NODE_SPECS_FILE_PATH="$INVENTORIES_DIR/$SITE_UID/$CLUSTER_UID/$NODE_UID.json"
                 
                 if ! [[ -f "${NODE_SPECS_FILE_PATH}" ]]; then
                     logThis "inventory" "$NODE_SPECS_FILE_PATH was too old or not present !" "DEBUG" || true
@@ -67,18 +67,18 @@ function generate_inventory {
 }
 
 function get_inventory_sites {
-    local INVENTORY_DIRECTORY="$1"
-    echo "$(find $INVENTORY_DIRECTORY -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)"
+    local INVENTORIES_DIR="$1"
+    echo "$(find $INVENTORIES_DIR -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)"
 }
 function get_inventory_site_clusters {
-    local INVENTORY_DIRECTORY="$1"
+    local INVENTORIES_DIR="$1"
     local SITE="$2"
-    echo "$(find $INVENTORY_DIRECTORY/$SITE/ -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)"
+    echo "$(find $INVENTORIES_DIR/$SITE/ -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)"
 }
 
 function get_inventory_site_cluster_nodes {
-    local INVENTORY_DIRECTORY="$1"
+    local INVENTORIES_DIR="$1"
     local SITE="$2"
     local CLUSTER="$3"
-    echo "$(find $INVENTORY_DIRECTORY/$SITE/$CLUSTER/ -maxdepth 1 -mindepth 1 -type f -exec basename {} \;)"
+    echo "$(find $INVENTORIES_DIR/$SITE/$CLUSTER/ -maxdepth 1 -mindepth 1 -type f -exec basename {} \;)"
 }

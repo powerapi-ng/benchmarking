@@ -6,21 +6,25 @@ set -ueo pipefail
 source .env
 
 ### LOGGING
-LOGGIN_DIR="./logs.d"
+LOGGING_DIR="./logs.d"
+mkdir -p $LOGGING_DIR
 SCRIPT_LOGGING_LEVEL=${LOG_LEVEL:-"DEBUG"}
 source libs/logging.sh
 
 ### JOBS 
 JOBS_DIR="./jobs.d"
+mkdir -p $JOBS_DIR
 JOBS_FILE="${JOBS_DIR}/jobs.json"
 source libs/jobs.sh
 
 ### Inventory
-INVENTORY_DIR="./inventory.d"
+INVENTORIES_DIR="./inventories.d"
+mkdir -p $INVENTORIES_DIR
 source libs/inventory.sh
 
 ### Results
 RESULTS_DIR="./results.d"
+mkdir -p $RESULTS_DIR
 source libs/results.sh
 
 logThis "main" "Starting Benchmarks !" "INFO" || true
@@ -28,17 +32,17 @@ logThis "main" "LOG_LEVEL is : $SCRIPT_LOGGING_LEVEL" "DEBUG" || true
 
 function main {
 
-    #generate_inventory $INVENTORY_DIR
+    #generate_inventory $INVENTORIES_DIR
 
     SKIP=${1:-""}
     if [[ -z $SKIP ]]; then
-        generate_jobs $JOBS_FILE
+        generate_jobs $JOBS_FILE $INVENTORIES_DIR
     fi
-    process_jobs $JOBS_FILE $RESULTS_DIR
 
     while ! job_is_done $JOBS_FILE ; do 
         logThis "main" "Job not done" "DEBUG" || true
         check_on_unfinished_jobs $JOBS_FILE
+        sleep 10
     done
 
     logThis "main" "Job is done" "DEBUG" || true
