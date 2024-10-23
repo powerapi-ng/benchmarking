@@ -5,3 +5,4 @@ function download_results {
     local SITE="$2"
 
     scp -ar $SITE:$RESULT_DIR $RESULT_DIR
+}
