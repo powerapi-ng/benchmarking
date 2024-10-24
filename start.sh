@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+set +x
 set -ueo pipefail
 
 source .env
@@ -32,7 +32,7 @@ logThis "main" "LOG_LEVEL is : $SCRIPT_LOGGING_LEVEL" "DEBUG" || true
 
 function main {
 
-    #generate_inventory $INVENTORIES_DIR
+    generate_inventory $INVENTORIES_DIR
 
     SKIP=${1:-""}
     if [[ -z $SKIP ]]; then

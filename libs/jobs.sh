@@ -59,30 +59,20 @@ function generate_jobs {
                 TASK="perf"
                 SCRIPT_FILE="./scripts.d/${SITE}/${CLUSTER}/${NODE_NAME}_${TASK}.sh"
                 RESULT_FILE="./results.d/${SITE}/${CLUSTER}/${NODE_NAME}-${TASK}-raw.csv"
-                METADATA_FILE="${INVENTORIES_DIR}${SITE}/${CLUSTER}/${NODE_NAME}.json"
+                METADATA_FILE="${INVENTORIES_DIR}/${SITE}/${CLUSTER}/${NODE_NAME}.json"
+
                 
-                generate_script_file $SCRIPT_FILE $TASK $WALLTIME $NODE_NAME $RESULT_FILE "FALSE" 
+                generate_script_file $SCRIPT_FILE $TASK $WALLTIME $NODE_NAME $RESULT_FILE $METADATA_FILE
 
                 OAR_JOB_ID="$(submit_job "$SITE" "$SCRIPT_FILE" "$NODE_NAME" "$ID")"
+                echo "$SITE"
                 add_job "$JOBS_FILE" "$ID" "$OAR_JOB_ID" "$TASK" "$SCRIPT_FILE" "$RESULT_FILE" "$METADATA_FILE" "$SITE"
 
-                echo "########################"
-                echo "########################"
-                echo "########################"
-                echo "########################"
-                echo "Waiting after submission"
-                echo "########################"
-                echo "########################"
-                echo "########################"
-                echo "########################"
-
-                sleep 10
+                sleep 1
                 ID=$(( ID + 1 ))
                 break
             done
-            break
         done
-        break
     done
 }
 
@@ -92,13 +82,12 @@ function check_on_unfinished_jobs {
 
     if [[ -n "$WAITING_JOBS" ]]; then
         for WAITING_JOB in ${WAITING_JOBS[@]}; do
-            local SITE=$(yq -e ".jobs[] | select(.oar_job_id == $WAITING_JOB) | .site" $JOBS_FILE) 
-            local SITE="rennes"
-            CURRENT_STATE="$(ssh $SITE oarstat -f -j $WAITING_JOB | grep 'state = ' | awk -F' ' '{print $3 }')"
+            local SITE=$(yq -e ".jobs[] | select(.oar_job_id == $WAITING_JOB) | .site" $JOBS_FILE | xargs)
+            CURRENT_STATE=$(ssh $SITE oarstat -f -j $WAITING_JOB | grep 'state = ' | awk -F' ' '{print $3 }')
             if [[ "$CURRENT_STATE" == "Waiting" ]]; then
                 logThis "jobs/check_on_unfinished_jobs" "Job $WAITING_JOB still waiting" "DEBUG" || true
             else
-                yq -i ".jobs[] | select(.oar_job_id == $(( WAITING_JOB ))) | .state = \"$CURRENT_STATE\"" $JOBS_FILE
+                yq -i "(.jobs[] | select(.oar_job_id == $(( WAITING_JOB ))).state) = \"$CURRENT_STATE\"" $JOBS_FILE
             fi
         done
     fi
@@ -108,12 +97,12 @@ function check_on_unfinished_jobs {
 
     if [[ -n "$RUNNING_JOBS" ]]; then
         for RUNNING_JOB in ${RUNNING_JOBS[@]}; do
-            local SITE="$(yq -e ".jobs[] | select(.oar_job_id == $RUNNING_JOB) | .site" $JOBS_FILE 2> /dev/null)"
-            CURRENT_STATE="$(ssh $SITE oarstat -f -j $RUNNING_JOB | grep 'state = ' | awk -F' ' '{print $3 }')"
+            local SITE="$(yq -e ".jobs[] | select(.oar_job_id == $RUNNING_JOB) | .site" $JOBS_FILE | xargs)" 
+            CURRENT_STATE="$(ssh $(echo $SITE) oarstat -f -j $RUNNING_JOB | grep 'state = ' | awk -F' ' '{print $3 }')"
             if [[ "$CURRENT_STATE" == "Running" ]]; then
                 logThis "jobs/check_on_unfinished_jobs" "Job $RUNNING_JOB still running" "DEBUG" || true
             else
-                yq -i ".jobs[] | select(.oar_job_id == $(( RUNNING_JOB ))) | .state = \"$CURRENT_STATE\"" $JOBS_FILE
+                yq -i "(.jobs[] | select(.oar_job_id == $(( RUNNING_JOB ))).state) = \"$CURRENT_STATE\"" $JOBS_FILE
             fi
         done
     fi
@@ -122,7 +111,7 @@ function check_on_unfinished_jobs {
 function job_is_done {
     local JOBS_FILE="$1"
 
-    if [[ "$(yq -e '[.jobs[] | select(.state == "Waiting" or .state == "Running")] | length' $JOBS_FILE)" == "0" ]]; then
+    if [[ "$(yq -e '[.jobs[] | select(.state == "Waiting" or .state == "Running" or .state == "Launching" )] | length' $JOBS_FILE)" == "0" ]]; then
         return 0
     else
         return 1

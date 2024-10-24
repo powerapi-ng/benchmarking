@@ -58,11 +58,8 @@ function generate_inventory {
                 fi
 
                 break
-            
             done
-            break
         done 
-        break
     done
 }
 
