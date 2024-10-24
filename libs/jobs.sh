@@ -78,8 +78,21 @@ function generate_jobs {
 
 function check_on_unfinished_jobs {
     local JOBS_FILE="$1"
-    local WAITING_JOBS="$(yq -e '.jobs[] | select(.state == "Waiting") | .oar_job_id' $JOBS_FILE 2> /dev/null)"
 
+    local LAUNCHING_JOBS="$(yq -e '.jobs[] | select(.state == "Launching") | .oar_job_id' $JOBS_FILE 2> /dev/null)"
+    if [[ -n "$LAUNCHING_JOBS" ]]; then
+        for LAUNCHING_JOB in ${LAUNCHING_JOBS[@]}; do
+            local SITE=$(yq -e ".jobs[] | select(.oar_job_id == $LAUNCHING_JOB) | .site" $JOBS_FILE | xargs)
+            CURRENT_STATE=$(ssh $SITE oarstat -f -j $LAUNCHING_JOB | grep 'state = ' | awk -F' ' '{print $3 }')
+            if [[ "$CURRENT_STATE" == "LAUNCHING" ]]; then
+                logThis "jobs/check_on_unfinished_jobs" "Job $LAUNCHING_JOB still launching" "DEBUG" || true
+            else
+                yq -i "(.jobs[] | select(.oar_job_id == $(( LAUNCHING_JOB ))).state) = \"$CURRENT_STATE\"" $JOBS_FILE
+            fi
+        done
+    fi
+
+    local WAITING_JOBS="$(yq -e '.jobs[] | select(.state == "Waiting") | .oar_job_id' $JOBS_FILE 2> /dev/null)"
     if [[ -n "$WAITING_JOBS" ]]; then
         for WAITING_JOB in ${WAITING_JOBS[@]}; do
             local SITE=$(yq -e ".jobs[] | select(.oar_job_id == $WAITING_JOB) | .site" $JOBS_FILE | xargs)

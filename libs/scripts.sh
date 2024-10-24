@@ -122,4 +122,5 @@ function list_of_values {
   # Remove duplicates and sort the VALUE list
   values_list=($(echo "${values_list[@]}" | tr ' ' '\n' | sort -n | uniq))
   
-  echo "VALUE List: ${values_list[@]}"
+  echo "${values_list[@]}"
+}
