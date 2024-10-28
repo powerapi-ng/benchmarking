@@ -5,13 +5,17 @@ source ./libs/scripts.sh
 function submit_job {
     local SITE="$1"
     local SCRIPT_FILE="$2"
-
+    local HWPC_CONFIG_FILE="$3"
     make_script_executable $SCRIPT_FILE
     
     ssh $SITE mkdir -p "${SCRIPT_FILE%/*}"
+    
 
     logThis "jobs/submit_job" "Upload : $SCRIPT_FILE to $SITE:$SCRIPT_FILE " "INFO" || true
     scp $SCRIPT_FILE $SITE:$SCRIPT_FILE
+    if [[ -n $HWPC_CONFIG_FILE ]]; then
+        scp $HWPC_CONFIG_FILE $SITE:$HWPC_CONFIG_FILE
+    fi
 
     logThis "jobs/submit_job" "Submited on site $SITE : oarsub -S $SCRIPT_FILE" "INFO" || true
     OAR_JOB_ID="$(ssh $SITE oarsub -S $SCRIPT_FILE 2> /dev/null | grep "OAR_JOB_ID" | cut -d'=' -f2)"
@@ -31,17 +35,19 @@ function add_job {
     local OAR_JOB_ID="$3"
     local TASK="$4"
     local SCRIPT_FILE="$5"
-    local RESULT_FILE="$6"
+    local JOB_RESULT_DIR="$6"
     local METADATA_FILE="$7"
     local SITE="$8"
 
     logThis "jobs/add_job" "Add Job '$OAR_JOB_ID' metadata to Jobs file '$JOBS_FILE'" "DEBUG" || true
-    yq -i ".jobs += {\"id\": $(( ID )), \"oar_job_id\": $(( OAR_JOB_ID )), \"state\":\"$STATE\", \"task\":\"$TASK\", \"script_file\":\"$SCRIPT_FILE\", \"result_file\":\"$RESULT_FILE\", \"metadata_file\": \"$METADATA_FILE\", \"site\":\"$SITE\"}" $JOBS_FILE
+    yq -i ".jobs += {\"id\": $(( ID )), \"oar_job_id\": $(( OAR_JOB_ID )), \"state\":\"$STATE\", \"task\":\"$TASK\", \"script_file\":\"$SCRIPT_FILE\", \"result_dir\":\"$JOB_RESULT_DIR\", \"metadata_file\": \"$METADATA_FILE\", \"site\":\"$SITE\"}" $JOBS_FILE
 }
 
 function generate_jobs {
     local JOBS_FILE="$1"
     local INVENTORIES_DIR="$2"
+    local SCRIPTS_DIR="$3"
+    local RESULTS_DIR="$4"
     local WALLTIME="00:30:00"
     touch $JOBS_FILE
     yq -i '.jobs = []' $JOBS_FILE
@@ -56,23 +62,24 @@ function generate_jobs {
             logThis "jobs/generate_jobs" "Processing nodes in $CLUSTER" "DEBUG" || true
             for NODE in ${NODES[@]}; do
                 NODE_NAME="$(basename $NODE .json)"
-                TASK="perf"
-                SCRIPT_FILE="./scripts.d/${SITE}/${CLUSTER}/${NODE_NAME}_${TASK}.sh"
-                RESULT_FILE="./results.d/${SITE}/${CLUSTER}/${NODE_NAME}-${TASK}-raw.csv"
+                HWPC_CONFIG_FILE="$SCRIPTS_DIR/${SITE}/${CLUSTER}/${NODE_NAME}_hwpc_config_file.json"
                 METADATA_FILE="${INVENTORIES_DIR}/${SITE}/${CLUSTER}/${NODE_NAME}.json"
 
-                
-                generate_script_file $SCRIPT_FILE $TASK $WALLTIME $NODE_NAME $RESULT_FILE $METADATA_FILE
+                for TASK in hwpc perf hwpc_perf; do
+                    JOB_RESULT_DIR="$RESULTS_DIR/${SITE}/${CLUSTER}/${NODE_NAME}/${TASK}"
+                    SCRIPT_FILE="$SCRIPTS_DIR/${SITE}/${CLUSTER}/${NODE_NAME}_${TASK}.sh"
+                    generate_script_file $SCRIPT_FILE "$HWPC_CONFIG_FILE" $WALLTIME $NODE_NAME "default" $TASK $JOB_RESULT_DIR $METADATA_FILE 
+                    OAR_JOB_ID="$(submit_job "$SITE" "$SCRIPT_FILE" "$HWPC_CONFIG_FILE")"
+                    add_job "$JOBS_FILE" "$ID" "$OAR_JOB_ID" "$TASK" "$SCRIPT_FILE" "$JOB_RESULT_DIR" "$METADATA_FILE" "$SITE"
 
-                OAR_JOB_ID="$(submit_job "$SITE" "$SCRIPT_FILE" "$NODE_NAME" "$ID")"
-                echo "$SITE"
-                add_job "$JOBS_FILE" "$ID" "$OAR_JOB_ID" "$TASK" "$SCRIPT_FILE" "$RESULT_FILE" "$METADATA_FILE" "$SITE"
-
-                sleep 1
-                ID=$(( ID + 1 ))
+                    sleep 1
+                    ID=$(( ID + 1 ))
+                done
                 break
             done
+            break
         done
+        break
     done
 }
 

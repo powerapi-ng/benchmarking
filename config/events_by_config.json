@@ -1,0 +1,250 @@
+{
+  "vendors": [
+    {
+      "name": "Intel",
+      "microarchitectures": [
+        {
+          "name": "Cascade Lake-SP",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "Gold 5218"
+          }
+        },
+        {
+          "name": "Skylake-SP",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "Gold 6126"
+          }
+        },
+        {
+          "name": "Broadwell",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "E5-2650 v4"
+          }
+        },
+        {
+          "name": "Ivy Bridge",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "E5-2660 v2"
+          }
+        },
+        {
+          "name": "Haswell",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "E7-4850 v3"
+          }
+        },
+        {
+          "name": "Ice Lake-SP",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "Platinum 8358"
+          }
+        },
+        {
+          "name": "Sandy Bridge",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "E5-2660"
+          }
+        },
+        {
+          "name": "Skylake",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "Gold 5118"
+          }
+        }
+      ],
+      "perf_default_events": "/power/energy-pkg/,/power/energy-ram/",
+      "hwpc_default_events": {
+        "rapl": "RAPL_ENERGY_PKG",
+        "msr": "TSC APERF MPERF",
+        "core": "CPU_CLK_THREAD_UNHALTED:REF_P CPU_CLK_THREAD_UNHALTED:THREAD_P LLC_MISSES INSTRUCTIONS_RETIRED"
+      }
+    },
+    {
+      "name": "AMD",
+      "microarchitectures": [
+        {
+          "name": "Zen 2",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "7352"
+          }
+        },
+        {
+          "name": "Zen 3",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "7513"
+          }
+        },
+        {
+          "name": "Zen",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "7301"
+          }
+        }
+      ],
+      "perf_default_events": "/power/energy-pkg/",
+      "hwpc_default_events": {
+        "rapl": "RAPL_ENERGY_PKG",
+        "msr": "TSC APERF MPERF",
+        "core": "CYCLES_NOT_IN_HALTS RETIRED_INSTRUCTIONS RETIRED_UOPS"
+      }
+    },
+    {
+      "name": "Nvidia",
+      "microarchitectures": [
+        {
+          "name": "Carmel",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "Unknown"
+          }
+        }
+      ],
+      "perf_default_events": "",
+      "hwpc_default_events": {
+        "rapl": "",
+        "msr": "",
+        "core": ""
+      }
+    },
+    {
+      "name": "",
+      "microarchitectures": [
+        {
+          "name": "",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": ""
+          }
+        }
+      ],
+      "perf_default_events": "",
+      "hwpc_default_events": {
+        "rapl": "",
+        "msr": "",
+        "core": ""
+      }
+    },
+    {
+      "name": "Cavium",
+      "microarchitectures": [
+        {
+          "name": "Vulcan",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "99xx"
+          }
+        }
+      ],
+      "perf_default_events": "",
+      "hwpc_default_events": {
+        "rapl": "",
+        "msr": "",
+        "core": ""
+      }
+    },
+    {
+      "name": "IBM",
+      "microarchitectures": [
+        {
+          "name": "POWER8",
+          "perf_specific_events": "",
+          "hwpc_specific_events": {
+            "rapl": "",
+            "msr": "",
+            "core": ""
+          },
+          "versions": {
+            "name": "1"
+          }
+        }
+      ],
+      "perf_default_events": "",
+      "hwpc_default_events": {
+        "rapl": "",
+        "msr": "",
+        "core": ""
+      }
+    }
+  ]
+}
