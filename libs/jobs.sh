@@ -18,7 +18,9 @@ function submit_job {
     fi
 
     logThis "jobs/submit_job" "Submited on site $SITE : oarsub -S $SCRIPT_FILE" "INFO" || true
-    OAR_JOB_ID="$(ssh $SITE oarsub -S $SCRIPT_FILE 2> /dev/null | grep "OAR_JOB_ID" | cut -d'=' -f2)"
+    OAR_JOB_ID="$RANDOM"
+    #OAR_JOB_ID="$(ssh $SITE oarsub -S $SCRIPT_FILE 2> /dev/null | grep "OAR_JOB_ID" | cut -d'=' -f2)"
+
 
     echo $OAR_JOB_ID
 }
@@ -34,13 +36,14 @@ function add_job {
     local ID="$2"
     local OAR_JOB_ID="$3"
     local TASK="$4"
-    local SCRIPT_FILE="$5"
-    local JOB_RESULT_DIR="$6"
-    local METADATA_FILE="$7"
-    local SITE="$8"
+    local STRESS_NG_NB_CPU="$5"
+    local SCRIPT_FILE="$6"
+    local JOB_RESULT_DIR="$7"
+    local METADATA_FILE="$8"
+    local SITE="$9"
 
     logThis "jobs/add_job" "Add Job '$OAR_JOB_ID' metadata to Jobs file '$JOBS_FILE'" "DEBUG" || true
-    yq -i ".jobs += {\"id\": $(( ID )), \"oar_job_id\": $(( OAR_JOB_ID )), \"state\":\"$STATE\", \"task\":\"$TASK\", \"script_file\":\"$SCRIPT_FILE\", \"result_dir\":\"$JOB_RESULT_DIR\", \"metadata_file\": \"$METADATA_FILE\", \"site\":\"$SITE\"}" $JOBS_FILE
+    yq -i ".jobs += {\"id\": $(( ID )), \"oar_job_id\": $(( OAR_JOB_ID )), \"state\":\"$STATE\", \"task\":\"$TASK\", \"cores_value\":\"$STRESS_NG_NB_CPU\", \"script_file\":\"$SCRIPT_FILE\", \"result_dir\":\"$JOB_RESULT_DIR\", \"metadata_file\": \"$METADATA_FILE\", \"site\":\"$SITE\"}" $JOBS_FILE
 }
 
 function generate_jobs {
@@ -48,12 +51,14 @@ function generate_jobs {
     local INVENTORIES_DIR="$2"
     local SCRIPTS_DIR="$3"
     local RESULTS_DIR="$4"
-    local WALLTIME="00:30:00"
+    local WALLTIME="2:00:00"
     touch $JOBS_FILE
     yq -i '.jobs = []' $JOBS_FILE
     ID=1
     SITES="$(get_inventory_sites ${INVENTORIES_DIR})"
     
+    STRESS_NG_NB_CPUS="1 2 4 6 8 15 16 25 32 54 64"
+
     for SITE in ${SITES[@]}; do
         CLUSTERS="$(get_inventory_site_clusters ${INVENTORIES_DIR} $SITE)"
         logThis "jobs/generate_jobs" "Processing clusters in $SITE" "DEBUG" || true
@@ -65,15 +70,25 @@ function generate_jobs {
                 HWPC_CONFIG_FILE="$SCRIPTS_DIR/${SITE}/${CLUSTER}/${NODE_NAME}_hwpc_config_file.json"
                 METADATA_FILE="${INVENTORIES_DIR}/${SITE}/${CLUSTER}/${NODE_NAME}.json"
 
-                for TASK in hwpc perf hwpc_perf; do
-                    JOB_RESULT_DIR="$RESULTS_DIR/${SITE}/${CLUSTER}/${NODE_NAME}/${TASK}"
-                    SCRIPT_FILE="$SCRIPTS_DIR/${SITE}/${CLUSTER}/${NODE_NAME}_${TASK}.sh"
-                    generate_script_file $SCRIPT_FILE "$HWPC_CONFIG_FILE" $WALLTIME $NODE_NAME "default" $TASK $JOB_RESULT_DIR $METADATA_FILE 
-                    OAR_JOB_ID="$(submit_job "$SITE" "$SCRIPT_FILE" "$HWPC_CONFIG_FILE")"
-                    add_job "$JOBS_FILE" "$ID" "$OAR_JOB_ID" "$TASK" "$SCRIPT_FILE" "$JOB_RESULT_DIR" "$METADATA_FILE" "$SITE"
+                NB_CORES="$(yq '.architecture.nb_cores' $METADATA_FILE)"
+                STRESS_NG_NB_CPUS_NODE=""
+                for V in $(echo $STRESS_NG_NB_CPUS); do 
+                    if [[ $(( V )) -lt $(( NB_CORES )) ]]; then
+                        STRESS_NG_NB_CPUS_NODE="$STRESS_NG_NB_CPUS_NODE $V"
+                    fi
+                done
 
-                    sleep 1
-                    ID=$(( ID + 1 ))
+                for TASK in hwpc perf hwpc_perf; do
+                    for STRESS_NG_NB_CPU in $STRESS_NG_NB_CPUS_NODE; do 
+                        JOB_RESULT_DIR="$RESULTS_DIR/${SITE}/${CLUSTER}/${NODE_NAME}/${TASK}_${STRESS_NG_NB_CPU}"
+                        SCRIPT_FILE="$SCRIPTS_DIR/${SITE}/${CLUSTER}/${NODE_NAME}_${TASK}_${STRESS_NG_NB_CPU}.sh"
+                        generate_script_file $SCRIPT_FILE "$HWPC_CONFIG_FILE" $WALLTIME $NODE_NAME "default" $TASK ${STRESS_NG_NB_CPU} $JOB_RESULT_DIR $METADATA_FILE 
+                        OAR_JOB_ID="$(submit_job "$SITE" "$SCRIPT_FILE" "$HWPC_CONFIG_FILE")"
+                        add_job "$JOBS_FILE" "$ID" "$OAR_JOB_ID" "$TASK" ${STRESS_NG_NB_CPU} "$SCRIPT_FILE" "$JOB_RESULT_DIR" "$METADATA_FILE" "$SITE"
+
+                        sleep 1
+                        ID=$(( ID + 1 ))
+                    done
                 done
                 break
             done
@@ -136,4 +151,38 @@ function job_is_done {
     else
         return 1
     fi
+}
+
+function list_of_values {
+
+  local MIN_VALUE=$1
+  local MAX_VALUE=$2
+  values_list=()
+  
+  value=$MIN_VALUE
+
+  while [ $value -le $MAX_VALUE ]; do
+      values_list+=($value)
+      
+      # Add random values around the power of 2
+      if [ $value -gt 1 ]; then
+          random_low=$((value - RANDOM % (value / 2)))
+          random_high=$((value + RANDOM % (value / 2)))
+          
+          if [ $random_low -ge $MIN_VALUE ]; then
+              values_list+=($random_low)
+          fi
+          
+          if [ $random_high -le $MAX_VALUE ]; then
+              values_list+=($random_high)
+          fi
+      fi
+      
+      value=$((value * 2))
+  done
+  
+  # Remove duplicates and sort the VALUE list
+  values_list=($(echo "${values_list[@]}" | tr ' ' '\n' | sort -n | uniq))
+  
+  echo "${values_list[@]}"
 }
