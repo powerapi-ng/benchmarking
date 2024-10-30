@@ -42,6 +42,7 @@ function setup_command {
 
 function free_job_command {
     local SCRIPT_FILE="$1"
+    echo '    if [[ -n "$PERF_PID" ]]; then kill -2 $PERF_PID ; fi' >> $SCRIPT_FILE
     echo 'done' >> $SCRIPT_FILE
     echo "exit 0" >> $SCRIPT_FILE
 }
@@ -49,9 +50,9 @@ function free_job_command {
 function stress-ng_command {
     local SCRIPT_FILE="$1"
     local STRESS_NG_CPU=$2
-    local STRESS_NG_CPU_OPS=$3
+    local STRESS_NG_OPS_PER_CORE=50000
 
-    echo "    stress-ng --cpu ${STRESS_NG_CPU} --cpu-ops ${STRESS_NG_CPU_OPS} -q" >> $SCRIPT_FILE
+    echo "    stress-ng --cpu ${STRESS_NG_CPU} --cpu-ops $(( STRESS_NG_CPU * STRESS_NG_OPS_PER_CORE )) -q" >> $SCRIPT_FILE
 }
 
 function perf_command {
@@ -61,8 +62,8 @@ function perf_command {
 
     logThis "scripts/perf_command" "Generating PERF commands in '$SCRIPT_FILE'" "DEBUG" || true
     echo "    mkdir -p "${JOB_RESULT_DIR}"" >> $SCRIPT_FILE 
-
     echo "    sudo perf stat -a -o ${JOB_RESULT_DIR}/perf_\${i}.stat -e ${PERF_EVENTS} &" >> $SCRIPT_FILE
+    echo "    PERF_PID=\$!" >> $SCRIPT_FILE
 
 }
 
@@ -81,7 +82,7 @@ function hwpc_command {
     yq -i  '.name = "sensor"' $HWPC_CONFIG_FILE
     yq -i  '.verbose = true' $HWPC_CONFIG_FILE
     yq -i  ".cgroup_basepath = \"/sys/fs/cgroup/perf_event\"" $HWPC_CONFIG_FILE
-    yq -i  '.frequency = 500' $HWPC_CONFIG_FILE
+    yq -i  '.frequency = 1000' $HWPC_CONFIG_FILE
     yq -i  '.output.type = "csv"' $HWPC_CONFIG_FILE
     yq -i  ".output.directory = \"${APP_HOME}/${JOB_RESULT_DIR}_hwpc_1\"" $HWPC_CONFIG_FILE
     yq -i  '.system.rapl.events = []' $HWPC_CONFIG_FILE
@@ -99,13 +100,13 @@ function hwpc_command {
     for EVENT in $(echo $HWPC_CORE_EVENTS | xargs); do 
         yq -i  ".system.core.events += \"$EVENT\" " $HWPC_CONFIG_FILE
     done
-    echo "    docker ps -a | grep hwpc-sensor && docker rm -f hwpc-sensor" >> $SCRIPT_FILE
+    echo "    docker ps -a | grep hwpc-sensor-\$(( i - 1)) && docker rm -f hwpc-sensor" >> $SCRIPT_FILE
     echo "    JOB_RESULT_DIR=${JOB_RESULT_DIR}_\${i}" >> $SCRIPT_FILE
     echo "    HWPC_CONFIG_FILE=$HWPC_CONFIG_FILE" >> $SCRIPT_FILE
     echo "    mkdir -p $JOB_RESULT_DIR" >> $SCRIPT_FILE
-    echo "    docker run --rm -d --net=host --privileged --pid=host --name \"hwpc-sensor\" -v /sys:/sys -v /var/lib/docker/containers:/var/lib/docker/containers:ro -v /tmp/powerapi-sensor-reporting:/reporting -v \$(pwd):${APP_HOME} powerapi/hwpc-sensor:1.4.0 --config-file ${APP_HOME}/\$HWPC_CONFIG_FILE" >> $SCRIPT_FILE
+    echo "    docker run --rm -d --net=host --privileged --pid=host --name \"hwpc-sensor-\${i}\" -v /sys:/sys -v /var/lib/docker/containers:/var/lib/docker/containers:ro -v /tmp/powerapi-sensor-reporting:/reporting -v \$(pwd):${APP_HOME} powerapi/hwpc-sensor:1.4.0 --config-file ${APP_HOME}/\$HWPC_CONFIG_FILE" >> $SCRIPT_FILE
     echo "    NEXT_INDEX=\$(( i+1 ))" >> $SCRIPT_FILE
-    echo "    sed -i \"s/\${JOB_RESULT_DIR}_hwpc_\${i}/\${JOB_RESULT_DIR}_hwpc_\${NEXT_INDEX}/\" \$HWPC_CONFIG_FILE" >> $SCRIPT_FILE
+    echo "    sed -i \"s@\${JOB_RESULT_DIR}_hwpc_\${i}@\${JOB_RESULT_DIR}_hwpc_\${NEXT_INDEX}@\" \$HWPC_CONFIG_FILE" >> $SCRIPT_FILE
 
 }
 
@@ -117,8 +118,9 @@ function generate_script_file {
     local NODE=$4
     local QUEUE_TYPE="$5"
     local TASK=$6
-    local JOB_RESULT_DIR=$7
-    local METADATA_FILE=$8
+    local STRESS_NG_NB_CPU=$7
+    local JOB_RESULT_DIR=$8
+    local METADATA_FILE=$9
     local PROCESSOR_VENDOR="$(yq '.processor.vendor' $METADATA_FILE)"
     local PROCESSOR_MICROARCHITECTURE="$(yq '.processor.microarchitecture' $METADATA_FILE)"
     local PROCESSOR_VERSION="$(yq '.processor.version' $METADATA_FILE)"
@@ -152,7 +154,7 @@ function generate_script_file {
             ;;
 
         hwpc_perf)
-            perf_command "$SCRIPT_FILE" "$JOB_RESULT_DIR" "$PERF_EVENTS" 
+            perf_command "$SCRIPT_FILE" "$JOB_RESULT_DIR" "$PERF_EVENTS"
             hwpc_command "$SCRIPT_FILE" "$JOB_RESULT_DIR" "$HWPC_RAPL_EVENTS" "$HWPC_MSR_EVENTS" "$HWPC_CORE_EVENTS" "$HWPC_CONFIG_FILE"
             ;;
 
@@ -161,7 +163,7 @@ function generate_script_file {
             return 1
             ;;
         esac
-    stress-ng_command "$SCRIPT_FILE" "1" "100000"
+    stress-ng_command "$SCRIPT_FILE" "$STRESS_NG_NB_CPU"
     free_job_command $SCRIPT_FILE
 
 }
@@ -173,36 +175,3 @@ function make_script_executable {
     chmod u+x $SCRIPT_FILE
 }
 
-function list_of_values {
-
-  local MIN_VALUE=$1
-  local MAX_VALUE=$2
-  values_list=()
-  
-  value=$MIN_VALUE
-
-  while [ $value -le $MAX_VALUE ]; do
-      values_list+=($value)
-      
-      # Add random values around the power of 2
-      if [ $value -gt 1 ]; then
-          random_low=$((value - RANDOM % (value / 2)))
-          random_high=$((value + RANDOM % (value / 2)))
-          
-          if [ $random_low -ge $MIN_VALUE ]; then
-              values_list+=($random_low)
-          fi
-          
-          if [ $random_high -le $MAX_VALUE ]; then
-              values_list+=($random_high)
-          fi
-      fi
-      
-      value=$((value * 2))
-  done
-  
-  # Remove duplicates and sort the VALUE list
-  values_list=($(echo "${values_list[@]}" | tr ' ' '\n' | sort -n | uniq))
-  
-  echo "${values_list[@]}"
-}
