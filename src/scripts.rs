@@ -12,9 +12,16 @@ use std::fs::File;
 use std::io::Write;
 use thiserror::Error;
 
+const WALLTIME: &str = "4";
+const QUEUE_TYPE: &str = "default";
+const CPU_OPS_PER_CORE: u32 = 50_000;
+const NB_ITERATIONS: usize = 15;
+const HWPC_HOME_DIRECTORY: &str = "/app";
+
 #[derive(Template)]
 #[template(path = "benchmark.sh", escape = "none")]
 struct BenchmarkTemplate {
+    nb_iterations: usize,
     perf_alone: bool,
     hwpc_alone: bool,
     hwpc_and_perf: bool,
@@ -30,11 +37,12 @@ struct BenchmarkTemplate {
     results_directory: String,
     core_values: Vec<u32>,
     perf_events: PerfEvents,
-    cpu_ops_by_core: u32,
+    cpu_ops_per_core: u32,
 }
 
 impl BenchmarkTemplate {
     fn new(
+        nb_iterations: usize,
         perf_alone: bool,
         hwpc_alone: bool,
         hwpc_and_perf: bool,
@@ -50,9 +58,10 @@ impl BenchmarkTemplate {
         results_directory: String,
         core_values: Vec<u32>,
         perf_events: PerfEvents,
-        cpu_ops_by_core: Option<u32>,
+        cpu_ops_per_core: Option<u32>,
     ) -> Self {
         Self {
+            nb_iterations,
             perf_alone,
             hwpc_alone,
             hwpc_and_perf,
@@ -68,7 +77,7 @@ impl BenchmarkTemplate {
             results_directory,
             core_values,
             perf_events,
-            cpu_ops_by_core: cpu_ops_by_core.unwrap_or_default(),
+            cpu_ops_per_core: cpu_ops_per_core.unwrap_or_default(),
         }
     }
 }
@@ -76,9 +85,9 @@ impl BenchmarkTemplate {
 #[derive(Error, Debug)]
 pub enum ScriptError {
     #[error("Could not create script file : {0}")]
-    FsError(#[from] std::io::Error),
+    Fs(#[from] std::io::Error),
     #[error("Could not create HWPC Config files : {0}")]
-    ConfigError(#[from] configs::ConfigError),
+    Config(#[from] configs::ConfigError),
 }
 
 pub fn generate_script_file(
@@ -108,6 +117,7 @@ pub fn generate_script_file(
         "hwpc_and_perf",
     );
     let benchmark = BenchmarkTemplate::new(
+        NB_ITERATIONS,
         true,
         true,
         true,
@@ -115,15 +125,15 @@ pub fn generate_script_file(
         env::var("DOCKER_HUB_TOKEN").expect("DOCKER_HUB_TOKEN must be set"),
         hwpc_alone_configs,
         hwpc_and_perf_configs,
-        Some("/app".to_owned()),
-        "default".to_owned(),
+        Some(HWPC_HOME_DIRECTORY.to_owned()),
+        QUEUE_TYPE.to_owned(),
         job.node.uid.clone(),
-        "4".to_string(),
-        job.node.exotic.clone(),
+        WALLTIME.to_string(),
+        job.node.exotic,
         job.results_dir.clone(),
         job.core_values.clone(),
         perf_events,
-        Some(50_000),
+        Some(CPU_OPS_PER_CORE),
     );
     let benchmark = benchmark.render().unwrap();
     file.write_all(benchmark.as_bytes())?;

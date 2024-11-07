@@ -1,5 +1,4 @@
 use crate::HwpcEvents;
-use serde_json;
 use std::collections::HashMap;
 use std::fmt;
 use thiserror::Error;
@@ -7,9 +6,9 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum ConfigError {
     #[error("Could not read/create file : {0}")]
-    FsError(#[from] std::io::Error),
+    Fs(#[from] std::io::Error),
     #[error("Serde JSON parsing failed: {0}")]
-    SerdeJSONError(#[from] serde_json::Error),
+    SerdeJSON(#[from] serde_json::Error),
 }
 
 #[derive(Debug, Clone)]
@@ -129,7 +128,7 @@ pub fn generate_hwpc_configs(
             system: hwpc_system.clone(),
         };
 
-        hwpc_configs.insert(core_value.clone(), hwpc_config);
+        hwpc_configs.insert(*core_value, hwpc_config);
     }
 
     hwpc_configs
