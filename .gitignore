@@ -7,3 +7,10 @@
 /scripts.d/**/*
 /inventories.d/**/*
 /backup/**/*
+/test_results/**/*
+/jobs.yaml
+
+
+# Added by cargo
+
+/target
