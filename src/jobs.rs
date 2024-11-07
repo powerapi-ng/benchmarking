@@ -2,7 +2,6 @@ use crate::inventories;
 use crate::inventories::Node;
 use crate::scripts;
 use crate::EventsByVendor;
-use std::collections::HashMap;
 use log::{debug, error, info};
 use openssh::{KnownHosts, Session, Stdio};
 use openssh_sftp_client::Sftp;
@@ -10,10 +9,11 @@ use rand::Rng;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
+use std::collections::HashMap;
 use std::env;
+use std::fmt::{self, Display};
 use std::fs;
 use std::str::{self, FromStr};
-use std::fmt::{self, Display};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -47,7 +47,7 @@ pub enum OARState {
     Terminated,
     Finishing,
     Failed,
-    UnknownState
+    UnknownState,
 }
 
 impl Display for OARState {
@@ -60,7 +60,7 @@ impl Display for OARState {
             Self::Finishing => write!(f, "Finishing"),
             Self::Failed => write!(f, "Failed"),
             Self::NotSubmitted => write!(f, "NotSubmitted"),
-            Self::UnknownState => write!(f, "UnknownState")
+            Self::UnknownState => write!(f, "UnknownState"),
         }
     }
 }
@@ -74,7 +74,7 @@ impl OARState {
             "terminated" => OARState::Terminated,
             "hold" => OARState::Hold,
             "finishing" => OARState::Finishing,
-            &_ => OARState::UnknownState
+            &_ => OARState::UnknownState,
         }
     }
 }
@@ -177,8 +177,6 @@ impl Job {
 
         Ok(self)
     }
-
-
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -188,9 +186,9 @@ pub struct Jobs {
 
 impl Jobs {
     pub async fn submit_jobs(mut self) -> Result<Self, JobError> {
-    // Submit job to site through reqwest
-    //
-    // Update OAR_JOB_ID field
+        // Submit job to site through reqwest
+        //
+        // Update OAR_JOB_ID field
         for job in self.jobs.iter_mut() {
             job.submit_job().await?;
         }
@@ -198,41 +196,53 @@ impl Jobs {
         Ok(self)
     }
 
-  pub async fn check_unfinished_jobs(mut self, client: &reqwest::Client, base_url: &str, file_to_dump_to: &str) -> Result<Self, JobError> {
-    for job in self.jobs.iter_mut().filter(|j| ! j.finished() ) {
-        let response: HashMap<String, serde_json::Value> =
-        crate::inventories::get_api_call(client, &format!("{}/{}/jobs/{}", base_url, &job.site, &job.oar_job_id.unwrap()))
+    pub async fn check_unfinished_jobs(
+        mut self,
+        client: &reqwest::Client,
+        base_url: &str,
+        file_to_dump_to: &str,
+    ) -> Result<Self, JobError> {
+        for job in self.jobs.iter_mut().filter(|j| !j.finished()) {
+            let response: HashMap<String, serde_json::Value> = crate::inventories::get_api_call(
+                client,
+                &format!(
+                    "{}/{}/jobs/{}",
+                    base_url,
+                    &job.site,
+                    &job.oar_job_id.unwrap()
+                ),
+            )
             .await
             .unwrap();
-        let state: String = serde_json::from_value(response.get("state").unwrap().clone())?;
-        job.state = OARState::from(&state);
-        if job.finished() {
-            info!("Job {:?} finished with statut : {}", job.oar_job_id, job.state);
-        } else {
-
-            info!(
-                "Job {:?} is still in '{}' state.",
-                job.oar_job_id,
-                job.state
-            );
+            let state: String = serde_json::from_value(response.get("state").unwrap().clone())?;
+            job.state = OARState::from(&state);
+            if job.finished() {
+                info!(
+                    "Job {:?} finished with statut : {}",
+                    job.oar_job_id, job.state
+                );
+            } else {
+                info!(
+                    "Job {:?} is still in '{}' state.",
+                    job.oar_job_id, job.state
+                );
+            }
         }
+        self.dump_to_file(file_to_dump_to);
+        Ok(self)
     }
-    self.dump_to_file(file_to_dump_to);
-    Ok(self)
-  }
 
-  pub fn job_is_done(&self) -> bool {
-      self.jobs.iter().all(| job | job.finished())
-  }
-  pub fn dump_to_file(&self, file_path: &str) -> Result<(), JobError> {
-    if !std::path::Path::new(file_path).exists() {
-        info!("Create Jobs File : '{}'", file_path);
+    pub fn job_is_done(&self) -> bool {
+        self.jobs.iter().all(|job| job.finished())
     }
-    let mut file = fs::File::create(file_path)?;
-    serde_yaml::to_writer(file, self)?;
-    Ok(())
-  }
-
+    pub fn dump_to_file(&self, file_path: &str) -> Result<(), JobError> {
+        if !std::path::Path::new(file_path).exists() {
+            info!("Create Jobs File : '{}'", file_path);
+        }
+        let mut file = fs::File::create(file_path)?;
+        serde_yaml::to_writer(file, self)?;
+        Ok(())
+    }
 }
 // Use OpenSSH client to create an ssh session
 async fn ssh_connect(host: &str) -> Result<Session, JobError> {
@@ -344,8 +354,7 @@ pub fn generate_jobs(
         }
     }
     println!("jobs file : {:?}", jobs_file);
-    let jobs = Jobs{jobs};
+    let jobs = Jobs { jobs };
     jobs.dump_to_file(jobs_file)?;
     Ok(jobs)
 }
-

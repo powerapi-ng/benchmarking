@@ -35,9 +35,8 @@ pub enum BenchmarkError {
     #[error("Could not create script file : {0}")]
     FsError(#[from] std::io::Error),
     #[error("Http error : {0}")]
-    HttpRequestError(#[from] reqwest::Error)
-    //    #[error("Results processing failed: {0}")]
-    //    ResultError(#[from] results::ResultError),
+    HttpRequestError(#[from] reqwest::Error), //    #[error("Results processing failed: {0}")]
+                                              //    ResultError(#[from] results::ResultError),
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -64,7 +63,6 @@ impl IntoIterator for PerfEvents {
 }
 
 impl PerfEvents {
-    // The `iter` method returns an iterator over references to the events
     pub fn iter(&self) -> std::slice::Iter<String> {
         self.0.iter()
     }
@@ -98,26 +96,21 @@ impl EventsByVendor {
         microarchitecture_name: &str,
         version: &str,
     ) -> (PerfEvents, HwpcEvents) {
-        // Sets to collect unique perf and hwpc events
         let mut perf_event_set: HashSet<String> = HashSet::new();
         let mut rapl_set: HashSet<String> = HashSet::new();
         let mut msr_set: HashSet<String> = HashSet::new();
         let mut core_set: HashSet<String> = HashSet::new();
 
-        // Iterate over each vendor
         for vendor in &self.vendors {
             if vendor.name == vendor_name {
-                // Iterate over each microarchitecture
                 for microarchitecture in &vendor.microarchitectures {
                     if microarchitecture.name == microarchitecture_name
                         && microarchitecture.versions.contains(&version.to_string())
                     {
-                        // Collect unique PerfEvents
                         for event in &microarchitecture.perf_specific_events.0 {
                             perf_event_set.insert(event.clone());
                         }
 
-                        // Collect unique HwpcEvents
                         for event in &microarchitecture.hwpc_specific_events.rapl {
                             rapl_set.insert(event.clone());
                         }
@@ -130,7 +123,6 @@ impl EventsByVendor {
                     }
                 }
 
-                // Also collect the default events from the vendor level
                 for event in &vendor.perf_default_events.0 {
                     perf_event_set.insert(event.clone());
                 }
@@ -146,7 +138,6 @@ impl EventsByVendor {
             }
         }
 
-        // Convert the sets back to vectors
         let perf_events = perf_event_set.into_iter().collect();
         let hwpc_events = HwpcEvents {
             rapl: rapl_set.into_iter().collect(),
@@ -250,11 +241,13 @@ async fn main() -> Result<(), BenchmarkError> {
     dotenv::dotenv().ok(); // Charger les variables d'environnement
     let base_url = "https://api.grid5000.fr/stable/sites/"; // URL de base de l'API
     let client = reqwest::Client::builder().build()?;
-    
-    while ! jobs.job_is_done() {
+
+    while !jobs.job_is_done() {
         info!("Job not done!");
 
-        jobs = jobs.check_unfinished_jobs(&client, base_url, JOBS_FILE).await?;
+        jobs = jobs
+            .check_unfinished_jobs(&client, base_url, JOBS_FILE)
+            .await?;
 
         tokio::time::sleep(Duration::from_secs(10)).await;
     }
