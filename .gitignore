@@ -1,6 +1,5 @@
 /logs.d/**/*
 .env
-/bin/bash: ligne 1: q : commande introuvable
 /tasks.d/**/*
 /jobs.d/**/*
 /results.d/**/*
