@@ -1,5 +1,4 @@
 use crate::HwpcEvents;
-use derive_more::Display;
 use serde_json;
 use std::collections::HashMap;
 use std::fmt;

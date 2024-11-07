@@ -10,7 +10,6 @@ use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::Write;
-use std::vec::IntoIter;
 use thiserror::Error;
 
 #[derive(Template)]

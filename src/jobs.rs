@@ -2,7 +2,7 @@ use crate::inventories;
 use crate::inventories::Node;
 use crate::scripts;
 use crate::EventsByVendor;
-use log::{debug, error, info};
+use log::{error, info};
 use openssh::{KnownHosts, Session, Stdio};
 use openssh_sftp_client::Sftp;
 use rand::Rng;
@@ -239,7 +239,7 @@ impl Jobs {
         if !std::path::Path::new(file_path).exists() {
             info!("Create Jobs File : '{}'", file_path);
         }
-        let mut file = fs::File::create(file_path)?;
+        let file = fs::File::create(file_path)?;
         serde_yaml::to_writer(file, self)?;
         Ok(())
     }

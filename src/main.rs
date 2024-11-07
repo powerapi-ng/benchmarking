@@ -9,14 +9,13 @@ use crate::jobs::Jobs;
 use chrono::Local;
 use derive_more::Display;
 use env_logger::Builder;
-use log::{debug, error, info, warn, LevelFilter};
+use log::{debug, error, info, LevelFilter};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::collections::HashSet;
 use std::env;
 use std::io::{self, Write};
 use std::vec::IntoIter;
-use std::{fmt, fs, thread, time::Duration};
+use std::{fmt, fs, time::Duration};
 use thiserror::Error;
 use tokio;
 
