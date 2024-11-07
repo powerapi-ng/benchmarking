@@ -19,23 +19,23 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum JobError {
     #[error("Openssh client failed: {0}")]
-    OpensshError(#[from] openssh::Error),
+    Openssh(#[from] openssh::Error),
     #[error("Serde YAML parsing failed: {0}")]
-    SerdeYAMLError(#[from] serde_yaml::Error),
+    SerdeYAML(#[from] serde_yaml::Error),
     #[error("Serde JSON parsing failed: {0}")]
-    SerdeJSONError(#[from] serde_json::Error),
+    SerdeJSON(#[from] serde_json::Error),
     #[error("Env parsing failed: {0}")]
-    EnvError(#[from] env::VarError),
+    Env(#[from] env::VarError),
     #[error("Could not read script: {0}")]
-    IoError(#[from] std::io::Error),
+    Io(#[from] std::io::Error),
     #[error("Could not upload script: {0}")]
-    SftpError(#[from] openssh_sftp_client::Error),
+    Sftp(#[from] openssh_sftp_client::Error),
     #[error("Could not get Inventories entries: {0}")]
-    InventoryError(#[from] inventories::InventoryError),
+    Inventory(#[from] inventories::InventoryError),
     #[error("Could not generate Scripts: {0}")]
-    ScriptError(#[from] scripts::ScriptError),
+    Script(#[from] scripts::ScriptError),
     #[error("HTTP request failed: {0}")]
-    HttpRequestError(#[from] reqwest::Error),
+    HttpRequest(#[from] reqwest::Error),
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -132,7 +132,7 @@ impl Job {
             "Command to be executed on host '{}' : {}",
             site, mkdir_argument
         );
-        let mkdir = session
+        let _mkdir = session
             .command("mkdir")
             .arg("-p")
             .arg(&script_directory_path)
@@ -140,7 +140,7 @@ impl Job {
             .await?;
         let re = Regex::new(r"OAR_JOB_ID=(\d+)").unwrap();
         sftp_upload(&session, &self.script_file, &self.script_file).await?;
-        let executable = session
+        let _executable = session
             .command("chmod")
             .arg("u+x")
             .arg(&self.script_file)
@@ -228,7 +228,7 @@ impl Jobs {
                 );
             }
         }
-        self.dump_to_file(file_to_dump_to);
+        self.dump_to_file(file_to_dump_to)?;
         Ok(self)
     }
 
@@ -324,7 +324,7 @@ pub fn generate_jobs(
 
             let nodes =
                 inventories::get_inventory_site_cluster_nodes(inventories_dir, &site, &cluster)?;
-            for node_file in nodes {
+            if let Some(node_file) = nodes.first() {
                 let metadata_file_path =
                     format!("{}/{}/{}/{}", inventories_dir, &site, &cluster, &node_file);
                 let metadata_file_content = std::fs::read_to_string(&metadata_file_path)?;
@@ -349,7 +349,6 @@ pub fn generate_jobs(
                 scripts::generate_script_file(&job, events_by_vendor)?;
                 jobs.push(job);
 
-                break;
             }
         }
     }

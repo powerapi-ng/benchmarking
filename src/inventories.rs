@@ -10,6 +10,16 @@ use std::io::Write;
 use std::path::Path;
 use thiserror::Error;
 
+#[derive(Error, Debug)]
+pub enum InventoryError {
+    #[error("HTTP request failed: {0}")]
+    HttpRequest(#[from] reqwest::Error),
+    #[error("Failed to parse JSON: {0}")]
+    JsonParse(#[from] serde_json::Error),
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
+}
+
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Node {
     pub uid: String,
@@ -39,15 +49,6 @@ pub struct Architecture {
 pub enum StrOrFloat {
     Str(String),
     Float(f64),
-}
-
-impl StrOrFloat {
-    fn as_bytes(&self) -> String {
-        match self {
-            StrOrFloat::Str(s) => s.clone(),
-            StrOrFloat::Float(f) => f.to_string(),
-        }
-    }
 }
 
 impl Serialize for StrOrFloat {
@@ -152,17 +153,6 @@ async fn fetch_nodes(
     Ok(nodes)
 }
 
-#[derive(Error, Debug)]
-pub enum InventoryError {
-    #[error("HTTP request failed: {0}")]
-    HttpRequestError(#[from] reqwest::Error),
-    #[error("Failed to parse JSON: {0}")]
-    JsonParseError(#[from] serde_json::Error),
-    #[error("I/O error: {0}")]
-    IoError(#[from] std::io::Error),
-    // Ajoutez d'autres erreurs spécifiques si nécessaire
-}
-
 pub async fn get_api_call(
     client: &Client,
     endpoint: &str,
@@ -184,7 +174,7 @@ pub async fn get_api_call(
 
     match response {
         Ok(json) => Ok(json),
-        Err(e) => Err(InventoryError::HttpRequestError(e)),
+        Err(e) => Err(InventoryError::HttpRequest(e)),
     }
 }
 
@@ -220,7 +210,7 @@ pub async fn generate_inventory(inventories_dir: &str) -> Result<(), InventoryEr
             let mut nodes = fetch_nodes(&client, base_url, &site.uid, &cluster.uid)
                 .await
                 .unwrap();
-            for node in &mut nodes {
+            if let Some(node) = nodes.iter_mut().next() {
                 node.cluster = Some(cluster.uid.clone().to_string());
                 let node_specs_file_path = format!("{}/{}.json", cluster_dir, &node.uid);
 
@@ -230,7 +220,6 @@ pub async fn generate_inventory(inventories_dir: &str) -> Result<(), InventoryEr
                 } else {
                     debug!("{} is up to date!", node_specs_file_path);
                 }
-                break;
             }
         }
     }

@@ -17,25 +17,23 @@ use std::io::{self, Write};
 use std::vec::IntoIter;
 use std::{fmt, fs, time::Duration};
 use thiserror::Error;
-use tokio;
 
 #[derive(Error, Debug)]
 pub enum BenchmarkError {
     #[error("Inventory generation failed: {0}")]
-    InventoryError(#[from] inventories::InventoryError),
+    Inventory(#[from] inventories::InventoryError),
     #[error("Jobs processing failed: {0}")]
-    JobError(#[from] jobs::JobError),
+    Job(#[from] jobs::JobError),
     #[error("Script generation failed: {0}")]
-    ScriptError(#[from] scripts::ScriptError),
+    Script(#[from] scripts::ScriptError),
     #[error("Serde JSON parsing failed: {0}")]
-    SerdeJSONError(#[from] serde_json::Error),
+    SerdeJSON(#[from] serde_json::Error),
     #[error("Serde YAML parsing failed: {0}")]
-    SerdeYAMLError(#[from] serde_yaml::Error),
+    SerdeYAML(#[from] serde_yaml::Error),
     #[error("Could not create script file : {0}")]
-    FsError(#[from] std::io::Error),
+    Fs(#[from] std::io::Error),
     #[error("Http error : {0}")]
-    HttpRequestError(#[from] reqwest::Error), //    #[error("Results processing failed: {0}")]
-                                              //    ResultError(#[from] results::ResultError),
+    HttpRequest(#[from] reqwest::Error)
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
