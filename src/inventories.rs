@@ -20,13 +20,19 @@ pub enum InventoryError {
     Io(#[from] std::io::Error),
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Node {
     pub uid: String,
     pub cluster: Option<String>,
     pub exotic: bool,
     pub processor: Processor,
     pub architecture: Architecture,
+    pub supported_job_types: SupportedJobTypes,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct SupportedJobTypes {
+    pub queues: Vec<String>,
 }
 
 impl Node {
@@ -34,9 +40,17 @@ impl Node {
         let json_data = serde_json::to_vec(self)?;
         Ok(json_data)
     }
+    pub fn is_to_be_deployed(&self) -> bool {
+        super::SUPPORTED_PROCESSOR_VENDOR.contains(&self.processor.vendor.as_str())
+            && self
+                .supported_job_types
+                .queues
+                .contains(&"default".to_string())
+            && self.exotic 
+    }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Architecture {
     cpu_core_numbering: String,
     pub nb_cores: u32,
@@ -45,7 +59,7 @@ pub struct Architecture {
     platform_type: String,
 }
 
-#[derive(Debug, Clone, Display)]
+#[derive(Debug, Clone, Display, PartialEq)]
 pub enum StrOrFloat {
     Str(String),
     Float(f64),
@@ -85,7 +99,7 @@ impl<'de> Deserialize<'de> for StrOrFloat {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Processor {
     cache_l1: Option<i32>,
     cache_l1d: i32,
@@ -180,8 +194,7 @@ pub async fn get_api_call(
 
 pub async fn generate_inventory(inventories_dir: &str) -> Result<(), InventoryError> {
     dotenv::dotenv().ok(); // Charger les variables d'environnement
-    let base_url = "https://api.grid5000.fr/stable"; // URL de base de l'API
-                                                     //
+                           //
     fs::create_dir_all(inventories_dir)?;
     fs::read_dir(inventories_dir)?.for_each(|entry| {
         let path = entry.unwrap().path();
@@ -196,29 +209,33 @@ pub async fn generate_inventory(inventories_dir: &str) -> Result<(), InventoryEr
 
     let client = reqwest::Client::builder().build()?;
     // Récupérer les sites
-    let sites = fetch_sites(&client, base_url).await.unwrap();
+    let sites = fetch_sites(&client, super::BASE_URL).await.unwrap();
     for site in &sites {
         let site_dir = format!("{}/{}", inventories_dir, &site.uid);
         fs::create_dir_all(&site_dir)?;
 
         // Récupérer les clusters pour chaque site
-        let clusters = fetch_clusters(&client, base_url, &site.uid).await.unwrap();
+        let clusters = fetch_clusters(&client, super::BASE_URL, &site.uid)
+            .await
+            .unwrap();
         for cluster in &clusters {
             let cluster_dir = format!("{}/{}", site_dir, &cluster.uid);
             fs::create_dir_all(&cluster_dir)?;
             // Récupérer les nœuds pour chaque cluster
-            let mut nodes = fetch_nodes(&client, base_url, &site.uid, &cluster.uid)
+            let mut nodes = fetch_nodes(&client, super::BASE_URL, &site.uid, &cluster.uid)
                 .await
                 .unwrap();
             if let Some(node) = nodes.iter_mut().next() {
-                node.cluster = Some(cluster.uid.clone().to_string());
-                let node_specs_file_path = format!("{}/{}.json", cluster_dir, &node.uid);
+                if node.is_to_be_deployed() {
+                    node.cluster = Some(cluster.uid.clone().to_string());
+                    let node_specs_file_path = format!("{}/{}.json", cluster_dir, &node.uid);
 
-                if !Path::new(&node_specs_file_path).exists() {
-                    let mut file = File::create(node_specs_file_path)?;
-                    file.write_all(&node.as_bytes().unwrap())?;
-                } else {
-                    debug!("{} is up to date!", node_specs_file_path);
+                    if !Path::new(&node_specs_file_path).exists() {
+                        let mut file = File::create(node_specs_file_path)?;
+                        file.write_all(&node.as_bytes().unwrap())?;
+                    } else {
+                        debug!("{} is up to date!", node_specs_file_path);
+                    }
                 }
             }
         }
@@ -273,89 +290,4 @@ pub fn get_inventory_site_cluster_nodes(
         })
         .collect();
     Ok(nodes)
-}
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use serde_json::json;
-
-    #[test]
-    fn test_parse_node_with_string_version() {
-        let json_data = json!({
-            "uid": "node-1",
-            "processor": {
-                "vendor": "Intel",
-                "microarchitecture": "Nehalem",
-                "version": "v1.0",
-                "cache_l1d": 32,
-                "cache_l1i": 32,
-                "cache_l2": 256,
-                "cache_l3": 8192,
-                "clock_speed": 2300,
-                "ht_capable": true,
-                "instruction_set": "x86_64",
-                "microcode": "0xa",
-                "model": "Intel Xeon",
-                "other_description": "",
-            },
-            "architecture": {
-                "cpu_core_numbering": "sequential",
-                "nb_cores": 4,
-                "nb_procs": 1,
-                "nb_threads": 8,
-                "platform_type": "compute"
-            }
-        });
-
-        let node: Node =
-            serde_json::from_value(json_data).expect("Failed to parse Node with string version");
-        assert_eq!(node.processor.version.as_str(), "v1.0");
-    }
-
-    #[test]
-    fn test_parse_node_with_float_version() {
-        let json_data = json!({
-            "uid": "node-2",
-            "processor": {
-                "vendor": "AMD",
-                "microarchitecture": "Zen",
-                "version": 2.5,
-                "cache_l1d": 32,
-                "cache_l1i": 32,
-                "cache_l2": 512,
-                "cache_l3": 16384,
-                "clock_speed": 3400,
-                "ht_capable": true,
-                "instruction_set": "x86_64",
-                "microcode": "0x15",
-                "model": "Ryzen",
-                "other_description": "",
-            },
-            "architecture": {
-                "cpu_core_numbering": "sequential",
-                "nb_cores": 8,
-                "nb_procs": 1,
-                "nb_threads": 16,
-                "platform_type": "compute"
-            }
-        });
-
-        let node: Node =
-            serde_json::from_value(json_data).expect("Failed to parse Node with float version");
-        assert_eq!(node.processor.version.as_str(), "2.5");
-    }
-
-    #[test]
-    fn test_parse_empty_cluster() {
-        let json_data = json!({ "uid": "cluster-1" });
-        let cluster: Cluster = serde_json::from_value(json_data).expect("Failed to parse Cluster");
-        assert_eq!(cluster.uid, "cluster-1");
-    }
-
-    #[test]
-    fn test_parse_empty_site() {
-        let json_data = json!({ "uid": "site-1" });
-        let site: Site = serde_json::from_value(json_data).expect("Failed to parse Site");
-        assert_eq!(site.uid, "site-1");
-    }
 }

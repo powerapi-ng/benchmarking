@@ -8,6 +8,7 @@
 /backup/**/*
 /test_results/**/*
 /jobs.yaml
+/menage.sh
 
 
 # Added by cargo

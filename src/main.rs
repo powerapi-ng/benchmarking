@@ -1,14 +1,15 @@
 mod configs;
 mod inventories;
 mod jobs;
-mod logging;
 mod results;
 mod scripts;
+mod ssh;
 
 use crate::jobs::Jobs;
 use chrono::Local;
 use derive_more::Display;
 use env_logger::Builder;
+use inventories::StrOrFloat;
 use log::{debug, error, info, LevelFilter};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -17,6 +18,10 @@ use std::io::{self, Write};
 use std::vec::IntoIter;
 use std::{fmt, fs, time::Duration};
 use thiserror::Error;
+
+const SUPPORTED_PROCESSOR_VENDOR: &[&str; 3] = &["Intel", "AMD", "Cavium"];
+const SLEEP_CHECK_TIME_IN_SECONDES: u64 = 300;
+const BASE_URL: &str = "https://api.grid5000.fr/stable"; // URL de base de l'API
 
 #[derive(Error, Debug)]
 pub enum BenchmarkError {
@@ -33,7 +38,7 @@ pub enum BenchmarkError {
     #[error("Could not create script file : {0}")]
     Fs(#[from] std::io::Error),
     #[error("Http error : {0}")]
-    HttpRequest(#[from] reqwest::Error)
+    HttpRequest(#[from] reqwest::Error),
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -65,15 +70,15 @@ impl PerfEvents {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct MicroarchitectureEvents {
     name: String,
-    versions: Vec<String>,
+    versions: Vec<StrOrFloat>,
     perf_specific_events: PerfEvents,
     hwpc_specific_events: HwpcEvents,
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct VendorEvents {
     name: String,
     microarchitectures: Vec<MicroarchitectureEvents>,
@@ -81,7 +86,7 @@ pub struct VendorEvents {
     hwpc_default_events: HwpcEvents,
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct EventsByVendor {
     vendors: Vec<VendorEvents>,
 }
@@ -91,7 +96,7 @@ impl EventsByVendor {
         &self,
         vendor_name: &str,
         microarchitecture_name: &str,
-        version: &str,
+        version: &StrOrFloat,
     ) -> (PerfEvents, HwpcEvents) {
         let mut perf_event_set: HashSet<String> = HashSet::new();
         let mut rapl_set: HashSet<String> = HashSet::new();
@@ -102,7 +107,7 @@ impl EventsByVendor {
             if vendor.name == vendor_name {
                 for microarchitecture in &vendor.microarchitectures {
                     if microarchitecture.name == microarchitecture_name
-                        && microarchitecture.versions.contains(&version.to_string())
+                        && microarchitecture.versions.contains(&version)
                     {
                         for event in &microarchitecture.perf_specific_events.0 {
                             perf_event_set.insert(event.clone());
@@ -199,7 +204,8 @@ fn build_logger(log_level: &str) {
 
 #[tokio::main]
 async fn main() -> Result<(), BenchmarkError> {
-    // Set up logging
+    dotenv::dotenv().ok(); // Charger les variables d'environnement
+                           // Set up logging
     {
         let log_level = env::var("LOG_LEVEL").unwrap_or_else(|_| "debug".to_string());
         build_logger(&log_level);
@@ -213,10 +219,10 @@ async fn main() -> Result<(), BenchmarkError> {
     // Check if user wants to process unfinished JOBS
     // no -> from "generate_inventory" step
     // yes -> from "process jobs" step
-    let events_by_vendor_content = std::fs::read_to_string("config/test.json")?;
+    let events_by_vendor_content = std::fs::read_to_string("config/events_by_vendor.json")?;
     let events_by_vendor = serde_json::from_str(&events_by_vendor_content)?;
     let mut jobs: Jobs;
-    if skip_remaining_jobs() {
+    if !std::path::Path::new(JOBS_FILE).exists() || skip_remaining_jobs() {
         println!("Skipping !");
         info!("Skipping found unfinished JOBS !");
         inventories::generate_inventory(INVENTORIES_DIRECTORY).await?;
@@ -227,26 +233,146 @@ async fn main() -> Result<(), BenchmarkError> {
             RESULTS_DIRECTORY,
             &events_by_vendor,
         )
+        .await
         .unwrap();
-        jobs = jobs.submit_jobs().await?;
     } else {
         println!("Not Skipping !");
         let jobs_file_content = std::fs::read_to_string(JOBS_FILE)?;
         jobs = serde_yaml::from_str(&jobs_file_content)?;
     }
 
-    dotenv::dotenv().ok(); // Charger les variables d'environnement
-    let base_url = "https://api.grid5000.fr/stable/sites/"; // URL de base de l'API
     let client = reqwest::Client::builder().build()?;
 
     while !jobs.job_is_done() {
         info!("Job not done!");
 
         jobs = jobs
-            .check_unfinished_jobs(&client, base_url, JOBS_FILE)
+            .check_unfinished_jobs(&client, BASE_URL, JOBS_FILE)
             .await?;
 
-        tokio::time::sleep(Duration::from_secs(10)).await;
+        tokio::time::sleep(Duration::from_secs(SLEEP_CHECK_TIME_IN_SECONDES)).await;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn load_events_from_json(path: &str) -> EventsByVendor {
+        let data = fs::read_to_string(path).expect("Unable to read file");
+        serde_json::from_str(&data).expect("JSON was not well-formatted")
+    }
+
+    #[test]
+    fn test_get_events_intel() {
+        // Load the EventsByVendor data from a JSON file
+        let events_data = load_events_from_json("config/events_by_vendor.json");
+
+        // Test cases with known values (example values, adjust as needed)
+        let vendor_name = "Intel";
+        let microarchitecture_name = "Skylake";
+        let version = StrOrFloat::Str("Gold 5118".to_string());
+
+        // Expected values for Skylake v1 (replace with actual expected data)
+        let mut expected_perf_events = PerfEvents(vec![
+            "/power/energy-pkg/".to_string(),
+            "/power/energy-ram/".to_string(),
+        ]);
+        expected_perf_events.0.sort();
+
+        let mut expected_hwpc_events = HwpcEvents {
+            rapl: vec![
+                "RAPL_ENERGY_PKG".to_string(),
+                "RAPL_ENERGY_DRAM".to_string(),
+            ],
+            msr: vec!["TSC".to_string(), "APERF".to_string(), "MPERF".to_string()],
+            core: vec![
+                "CPU_CLK_THREAD_UNHALTED:REF_P".to_string(),
+                "CPU_CLK_THREAD_UNHALTED:THREAD_P".to_string(),
+                "LLC_MISSES".to_string(),
+                "INSTRUCTIONS_RETIRED".to_string(),
+            ],
+        };
+        expected_hwpc_events.rapl.sort();
+        expected_hwpc_events.msr.sort();
+        expected_hwpc_events.core.sort();
+
+        // Call get_events with specific vendor, microarchitecture, and version
+        let (mut perf_events, mut hwpc_events) =
+            events_data.get_events(vendor_name, microarchitecture_name, &version);
+        perf_events.0.sort();
+        hwpc_events.rapl.sort();
+        hwpc_events.msr.sort();
+        hwpc_events.core.sort();
+
+        // Assert that the returned events match the expected ones
+        assert_eq!(perf_events, expected_perf_events);
+        assert_eq!(hwpc_events, expected_hwpc_events);
+    }
+
+    #[test]
+    fn test_get_events_amd() {
+        // Load the EventsByVendor data from a JSON file
+        let events_data = load_events_from_json("config/events_by_vendor.json");
+
+        // Test cases with known values (example values, adjust as needed)
+        let vendor_name = "AMD";
+        let microarchitecture_name = "Zen 2";
+        let version = StrOrFloat::Float(7352.0);
+
+        // Expected values for Skylake v1 (replace with actual expected data)
+        let mut expected_perf_events = PerfEvents(vec!["/power/energy-pkg/".to_string()]);
+        expected_perf_events.0.sort();
+
+        let mut expected_hwpc_events = HwpcEvents {
+            rapl: vec!["RAPL_ENERGY_PKG".to_string()],
+            msr: vec!["TSC".to_string(), "APERF".to_string(), "MPERF".to_string()],
+            core: vec![
+                "CYCLES_NOT_IN_HALTS".to_string(),
+                "RETIRED_INSTRUCTIONS".to_string(),
+                "RETIRED_UOPS".to_string(),
+            ],
+        };
+        expected_hwpc_events.rapl.sort();
+        expected_hwpc_events.msr.sort();
+        expected_hwpc_events.core.sort();
+
+        // Call get_events with specific vendor, microarchitecture, and version
+        let (mut perf_events, mut hwpc_events) =
+            events_data.get_events(vendor_name, microarchitecture_name, &version);
+
+        perf_events.0.sort();
+        hwpc_events.rapl.sort();
+        hwpc_events.msr.sort();
+        hwpc_events.core.sort();
+
+        // Assert that the returned events match the expected ones
+        assert_eq!(perf_events, expected_perf_events);
+        assert_eq!(hwpc_events, expected_hwpc_events);
+    }
+
+    #[test]
+    fn test_get_events_with_nonexistent_values() {
+        let events_data = load_events_from_json("config/events_by_vendor.json");
+
+        // Use values that do not exist in the dataset
+        let vendor_name = "NonexistentVendor";
+        let microarchitecture_name = "NonexistentArch";
+        let version = StrOrFloat::Str("nonexistent_version".to_string());
+
+        // Expect empty results for nonexistent entries
+        let expected_perf_events = PerfEvents(vec![]);
+        let expected_hwpc_events = HwpcEvents {
+            rapl: vec![],
+            msr: vec![],
+            core: vec![],
+        };
+
+        let (perf_events, hwpc_events) =
+            events_data.get_events(vendor_name, microarchitecture_name, &version);
+
+        assert_eq!(perf_events, expected_perf_events);
+        assert_eq!(hwpc_events, expected_hwpc_events);
+    }
 }

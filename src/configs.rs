@@ -1,4 +1,5 @@
 use crate::HwpcEvents;
+use rand::Rng;
 use std::collections::HashMap;
 use std::fmt;
 use thiserror::Error;
@@ -29,11 +30,10 @@ impl fmt::Display for HwpcConfig {
 #[derive(Debug, Clone)]
 pub struct HwpcOutput {
     pub r#type: String,
-    pub directory: String,
 }
 impl fmt::Display for HwpcOutput {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "type: {},\ndirectory: {}", self.r#type, self.directory)
+        write!(f, "type: {}", self.r#type)
     }
 }
 
@@ -88,9 +88,26 @@ impl fmt::Display for HwpcSystemCore {
     }
 }
 
+pub fn generate_core_values(n: usize, max: u32) -> Vec<u32> {
+    let mut rng = rand::thread_rng();
+    let mut values = Vec::new();
+
+    for _ in 0..n {
+        let mut value = 1 + rng.gen_range(1..=max);
+        while value.is_power_of_two() {
+            value = 1 + rng.gen_range(1..=max);
+        }
+        values.push(value);
+    }
+
+    values.sort_unstable();
+    values.push(max);
+    values.dedup();
+    values
+}
+
 pub fn generate_hwpc_configs(
     hwpc_events: &HwpcEvents,
-    results_dir: &str,
     core_values: &Vec<u32>,
     prefix: &str,
 ) -> HashMap<u32, HwpcConfig> {
@@ -116,7 +133,6 @@ pub fn generate_hwpc_configs(
     for core_value in core_values {
         let hwpc_output = HwpcOutput {
             r#type: "csv".to_owned(),
-            directory: format!("{}/{}_{}", results_dir, prefix, core_value),
         };
 
         let hwpc_config = HwpcConfig {

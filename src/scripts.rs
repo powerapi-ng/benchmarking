@@ -12,10 +12,10 @@ use std::fs::File;
 use std::io::Write;
 use thiserror::Error;
 
-const WALLTIME: &str = "4";
+const WALLTIME: &str = "4:00:00";
 const QUEUE_TYPE: &str = "default";
-const CPU_OPS_PER_CORE: u32 = 50_000;
-const NB_ITERATIONS: usize = 15;
+const CPU_OPS_PER_CORE: u32 = 25_000;
+const NB_ITERATIONS: usize = 10;
 const HWPC_HOME_DIRECTORY: &str = "/app";
 
 #[derive(Template)]
@@ -102,17 +102,15 @@ pub fn generate_script_file(
     let (perf_events, hwpc_events) = events_by_vendor.get_events(
         &job.node.processor.vendor,
         &job.node.processor.microarchitecture,
-        &job.node.processor.version.to_string(),
+        &job.node.processor.version,
     );
     let hwpc_alone_configs = configs::generate_hwpc_configs(
         &hwpc_events,
-        &job.results_dir,
         &job.core_values,
         "hwpc_alone",
     );
     let hwpc_and_perf_configs = configs::generate_hwpc_configs(
         &hwpc_events,
-        &job.results_dir,
         &job.core_values,
         "hwpc_and_perf",
     );

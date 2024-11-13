@@ -23,3 +23,7 @@ rand = "0.8.5"
 regex = "1.11.1"
 askama = { version = "0.12.1", features = ["serde", "serde-json", "serde-yaml", "serde_json", "serde_yaml"] }
 derive_more = { version = "1.0.0", features = ["display"] }
+flate2 = { version = "1.0.34", features = ["zlib"] }
+tar = "0.4.43"
+bytes = "1.8.0"
+subprocess = "0.2.9"
