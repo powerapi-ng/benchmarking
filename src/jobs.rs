@@ -217,12 +217,79 @@ pub struct Jobs {
 }
 
 impl Jobs {
+    // Generate all jobs and store them in JOBS_FILE
+    pub async fn generate_jobs(
+        &mut self,
+        jobs_file: &str,
+        inventories_dir: &str,
+        scripts_dir: &str,
+        results_dir: &str,
+        events_by_vendor: &EventsByVendor,
+    ) -> Result<(), JobError> {
+        let sites = inventories::get_inventory_sites(inventories_dir)?;
+        for site in sites {
+            let clusters = inventories::get_inventory_site_clusters(inventories_dir, &site)?;
+            for cluster in clusters {
+                let scripts_cluster_dir = format!("{}/{}/{}", scripts_dir, &site, cluster);
+                let results_cluster_dir = format!("{}/{}/{}", results_dir, &site, cluster);
+                fs::create_dir_all(&scripts_cluster_dir)?;
+
+                let nodes = inventories::get_inventory_site_cluster_nodes(
+                    inventories_dir,
+                    &site,
+                    &cluster,
+                )?;
+                if let Some(node_file) = nodes.first() {
+                    let metadata_file_path =
+                        format!("{}/{}/{}/{}", inventories_dir, &site, &cluster, &node_file);
+                    let metadata_file_content = std::fs::read_to_string(&metadata_file_path)?;
+                    let node: Node = serde_json::from_str(&metadata_file_content)?;
+                    let node_uid = node.uid.clone();
+
+                    if !self.job_planned_on_node(&node_uid) {
+                        let script_file_path = format!("{}/{}.sh", &scripts_cluster_dir, &node_uid);
+                        let results_node_dir = format!("{}/{}", &results_cluster_dir, &node_uid);
+                        fs::create_dir_all(&results_node_dir)?;
+
+                        let core_values =
+                            configs::generate_core_values(5, node.architecture.nb_cores);
+                        let mut job = Job::new(
+                            self.jobs.len(),
+                            node,
+                            core_values,
+                            script_file_path,
+                            results_node_dir,
+                            metadata_file_path,
+                            site.clone(),
+                        );
+                        let client = reqwest::Client::builder().build()?;
+                        scripts::generate_script_file(&job, events_by_vendor)?;
+                        job.submit_job().await?;
+                        self.jobs.push(job);
+                        self.check_unfinished_jobs(&client, super::BASE_URL, jobs_file)
+                            .await?;
+
+                        while self.nb_ongoing_jobs() >= MAX_CONCURRENT_JOBS {
+                            info!("{} jobs are currently in [Waiting|Running|Finishing] state, waits before submitting more", MAX_CONCURRENT_JOBS);
+                            tokio::time::sleep(std::time::Duration::from_secs(
+                                super::SLEEP_CHECK_TIME_IN_SECONDES,
+                            ))
+                            .await;
+                        }
+                    }
+                }
+            }
+        }
+        self.dump_to_file(jobs_file)?;
+        Ok(())
+    }
+
     pub async fn check_unfinished_jobs(
-        mut self,
+        &mut self,
         client: &reqwest::Client,
         base_url: &str,
         file_to_dump_to: &str,
-    ) -> Result<Self, JobError> {
+    ) -> Result<(), JobError> {
         for job in self.jobs.iter_mut().filter(|j| !j.finished()) {
             let response: HashMap<String, serde_json::Value> = crate::inventories::get_api_call(
                 client,
@@ -248,7 +315,7 @@ impl Jobs {
             }
         }
         self.dump_to_file(file_to_dump_to)?;
-        Ok(self)
+        Ok(())
     }
     fn nb_ongoing_jobs(&self) -> usize {
         self.jobs
@@ -257,6 +324,11 @@ impl Jobs {
             .filter(|j| !j.finished())
             .collect::<Vec<&Job>>()
             .len()
+    }
+    pub fn job_planned_on_node(&self, searched_node_uid: &str) -> bool {
+        self.jobs
+            .iter()
+            .any(|job| job.node.uid == searched_node_uid)
     }
 
     pub fn job_is_done(&self) -> bool {
@@ -270,65 +342,6 @@ impl Jobs {
         serde_yaml::to_writer(file, self)?;
         Ok(())
     }
-}
-
-// Generate all jobs and store them in JOBS_FILE
-pub async fn generate_jobs(
-    jobs_file: &str,
-    inventories_dir: &str,
-    scripts_dir: &str,
-    results_dir: &str,
-    events_by_vendor: &EventsByVendor,
-) -> Result<Jobs, JobError> {
-    let mut jobs: Jobs = Jobs { jobs: Vec::new() };
-
-    let sites = inventories::get_inventory_sites(inventories_dir)?;
-    for site in sites {
-        let clusters = inventories::get_inventory_site_clusters(inventories_dir, &site)?;
-        for cluster in clusters {
-            let scripts_cluster_dir = format!("{}/{}/{}", scripts_dir, &site, cluster);
-            let results_cluster_dir = format!("{}/{}/{}", results_dir, &site, cluster);
-            fs::create_dir_all(&scripts_cluster_dir)?;
-
-            let nodes =
-                inventories::get_inventory_site_cluster_nodes(inventories_dir, &site, &cluster)?;
-            if let Some(node_file) = nodes.first() {
-                let metadata_file_path =
-                    format!("{}/{}/{}/{}", inventories_dir, &site, &cluster, &node_file);
-                let metadata_file_content = std::fs::read_to_string(&metadata_file_path)?;
-                let node: Node = serde_json::from_str(&metadata_file_content)?;
-                let node_uid = node.uid.clone();
-
-                let script_file_path = format!("{}/{}.sh", &scripts_cluster_dir, &node_uid);
-                let results_node_dir = format!("{}/{}", &results_cluster_dir, &node_uid);
-                fs::create_dir_all(&results_node_dir)?;
-
-                let core_values = configs::generate_core_values(5, node.architecture.nb_cores);
-                let mut job = Job::new(
-                    jobs.jobs.len(),
-                    node,
-                    core_values,
-                    script_file_path,
-                    results_node_dir,
-                    metadata_file_path,
-                    site.clone(),
-                );
-                let client = reqwest::Client::builder().build()?;
-                scripts::generate_script_file(&job, events_by_vendor)?;
-                job.submit_job().await?;
-                jobs.jobs.push(job);
-                jobs = jobs
-                    .check_unfinished_jobs(&client, super::BASE_URL, jobs_file)
-                    .await?;
-
-                while jobs.nb_ongoing_jobs() >= MAX_CONCURRENT_JOBS {
-                    info!("{} jobs are currently in [Waiting|Running|Finishing] state, waits before submitting more", MAX_CONCURRENT_JOBS);
-                }
-            }
-        }
-    }
-    jobs.dump_to_file(jobs_file)?;
-    Ok(jobs)
 }
 
 pub fn rsync_results(site: &str, cluster: &str, node: &str) -> JobResult {

@@ -1,4 +1,4 @@
-use bytes::{BufMut, BytesMut};
+use bytes::BytesMut;
 use log::{error, info};
 use openssh::{KnownHosts, Session, Stdio};
 use openssh_sftp_client::Sftp;

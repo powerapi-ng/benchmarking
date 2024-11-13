@@ -46,7 +46,6 @@ impl Node {
                 .supported_job_types
                 .queues
                 .contains(&"default".to_string())
-            && self.exotic
     }
 }
 

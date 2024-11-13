@@ -222,32 +222,30 @@ async fn main() -> Result<(), BenchmarkError> {
     let events_by_vendor_content = std::fs::read_to_string("config/events_by_vendor.json")?;
     let events_by_vendor = serde_json::from_str(&events_by_vendor_content)?;
     let mut jobs: Jobs;
-    if !std::path::Path::new(JOBS_FILE).exists() || skip_remaining_jobs() {
-        println!("Skipping !");
-        info!("Skipping found unfinished JOBS !");
-        inventories::generate_inventory(INVENTORIES_DIRECTORY).await?;
-        jobs = jobs::generate_jobs(
-            JOBS_FILE,
-            INVENTORIES_DIRECTORY,
-            SCRIPTS_DIRECTORY,
-            RESULTS_DIRECTORY,
-            &events_by_vendor,
-        )
-        .await
-        .unwrap();
+    if !std::path::Path::new(JOBS_FILE).exists() {
+        jobs = Jobs { jobs: Vec::new() };
     } else {
-        println!("Not Skipping !");
+        info!("Found jobs.yaml file, process with those jobs in mind");
         let jobs_file_content = std::fs::read_to_string(JOBS_FILE)?;
         jobs = serde_yaml::from_str(&jobs_file_content)?;
     }
+    inventories::generate_inventory(INVENTORIES_DIRECTORY).await?;
+    jobs.generate_jobs(
+        JOBS_FILE,
+        INVENTORIES_DIRECTORY,
+        SCRIPTS_DIRECTORY,
+        RESULTS_DIRECTORY,
+        &events_by_vendor,
+    )
+    .await
+    .unwrap();
 
     let client = reqwest::Client::builder().build()?;
 
     while !jobs.job_is_done() {
         info!("Job not done!");
 
-        jobs = jobs
-            .check_unfinished_jobs(&client, BASE_URL, JOBS_FILE)
+        jobs.check_unfinished_jobs(&client, BASE_URL, JOBS_FILE)
             .await?;
 
         tokio::time::sleep(Duration::from_secs(SLEEP_CHECK_TIME_IN_SECONDES)).await;
