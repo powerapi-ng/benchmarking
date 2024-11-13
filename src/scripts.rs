@@ -104,16 +104,10 @@ pub fn generate_script_file(
         &job.node.processor.microarchitecture,
         &job.node.processor.version,
     );
-    let hwpc_alone_configs = configs::generate_hwpc_configs(
-        &hwpc_events,
-        &job.core_values,
-        "hwpc_alone",
-    );
-    let hwpc_and_perf_configs = configs::generate_hwpc_configs(
-        &hwpc_events,
-        &job.core_values,
-        "hwpc_and_perf",
-    );
+    let hwpc_alone_configs =
+        configs::generate_hwpc_configs(&hwpc_events, &job.core_values, "hwpc_alone");
+    let hwpc_and_perf_configs =
+        configs::generate_hwpc_configs(&hwpc_events, &job.core_values, "hwpc_and_perf");
     let benchmark = BenchmarkTemplate::new(
         NB_ITERATIONS,
         true,

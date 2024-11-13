@@ -5,8 +5,7 @@ use tar::Archive;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum ResultError {
-}
+pub enum ResultError {}
 
 #[derive()]
 pub struct HwpcReport {}

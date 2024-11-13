@@ -107,7 +107,7 @@ impl EventsByVendor {
             if vendor.name == vendor_name {
                 for microarchitecture in &vendor.microarchitectures {
                     if microarchitecture.name == microarchitecture_name
-                        && microarchitecture.versions.contains(&version)
+                        && microarchitecture.versions.contains(version)
                     {
                         for event in &microarchitecture.perf_specific_events.0 {
                             perf_event_set.insert(event.clone());
