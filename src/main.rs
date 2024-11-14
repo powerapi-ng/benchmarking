@@ -14,7 +14,7 @@ use log::{debug, error, info, LevelFilter};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::env;
-use std::io::{self, Write};
+use std::io::Write;
 use std::vec::IntoIter;
 use std::{fmt, fs, time::Duration};
 use thiserror::Error;

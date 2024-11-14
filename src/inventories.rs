@@ -1,5 +1,5 @@
 use derive_more::Display;
-use log::{debug, error, info};
+use log::{debug, error};
 use reqwest::Client;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;

@@ -4,7 +4,7 @@ use openssh::{KnownHosts, Session, Stdio};
 use openssh_sftp_client::Sftp;
 use regex::Regex;
 use std::path::Path;
-use std::str::{self, FromStr};
+use std::str::{self};
 use thiserror::Error;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
