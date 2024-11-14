@@ -1,5 +1,5 @@
 use bytes::BytesMut;
-use log::{error, info};
+use log::{debug, error};
 use openssh::{KnownHosts, Session, Stdio};
 use openssh_sftp_client::Sftp;
 use std::path::Path;
@@ -22,7 +22,7 @@ type SshResult = Result<(), SshError>;
 // Use OpenSSH client to create an ssh session
 pub async fn ssh_connect(host: &str) -> Result<Session, SshError> {
     let session = Session::connect_mux(host, KnownHosts::Strict).await?;
-    info!("SSH Connection established with {}", host);
+    debug!("SSH Connection established with {}", host);
     Ok(session)
 }
 
@@ -48,12 +48,12 @@ pub async fn sftp_upload(
         Default::default(),
     )
     .await?;
-    info!("SFTP Connection established");
+    debug!("SFTP Connection established");
 
     {
         let mut fs = sftp.fs();
         fs.write(path_to_upload_file, bytes_content).await?;
-        info!(
+        debug!(
             "Local file '{}' written to remote destination '{}'",
             file_to_upload_path, path_to_upload_file
         );
@@ -79,7 +79,7 @@ pub async fn sftp_download(
         Default::default(),
     )
     .await?;
-    info!("SFTP Connection established");
+    debug!("SFTP Connection established");
 
     let mut remote_file = sftp.open(Path::new(file_to_download_path)).await?;
     let mut local_file = File::create(path_to_download_file).await?;

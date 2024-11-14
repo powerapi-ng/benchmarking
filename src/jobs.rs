@@ -3,7 +3,7 @@ use crate::configs;
 use crate::inventories::{self, Node};
 use crate::scripts;
 use crate::ssh;
-use log::{error, info};
+use log::{debug, error, info};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
@@ -93,29 +93,33 @@ pub struct Job {
     pub core_values: Vec<u32>,
     pub script_file: String,
     pub results_dir: String,
-    pub metadata_file: String,
     pub site: String,
 }
 
 impl Job {
-    fn new(
-        id: usize,
-        node: Node,
-        core_values: Vec<u32>,
-        script_file: String,
-        results_dir: String,
-        metadata_file: String,
-        site: String,
-    ) -> Self {
+    fn new(id: usize, node: Node, core_values: Vec<u32>, site: String) -> Self {
+        let cluster = node.cluster.clone().unwrap();
+        let node_uid = node.uid.clone();
         Job {
             id,
             node,
             oar_job_id: None, // Submission through OAR will give this ID
             state: OARState::NotSubmitted, // Default init state
             core_values,
-            script_file,
-            results_dir,
-            metadata_file,
+            script_file: format!(
+                "{}/{}/{}/{}.sh",
+                super::SCRIPTS_DIRECTORY,
+                site,
+                &cluster,
+                &node_uid
+            ),
+            results_dir: format!(
+                "{}/{}/{}/{}",
+                super::RESULTS_DIRECTORY,
+                site,
+                &cluster,
+                &node_uid
+            ),
             site,
         }
     }
@@ -130,7 +134,7 @@ impl Job {
             .map(|s| s.to_string_lossy().into_owned())
             .unwrap();
         let mkdir_argument = format!("-p {}", script_directory_path);
-        info!(
+        debug!(
             "Command to be executed on host '{}' : {}",
             site, mkdir_argument
         );
@@ -227,59 +231,91 @@ impl Jobs {
         events_by_vendor: &EventsByVendor,
     ) -> Result<(), JobError> {
         let sites = inventories::get_inventory_sites(inventories_dir)?;
+        let mut clusters_nodes: Vec<Vec<(String, String, Node)>> = Vec::new();
         for site in sites {
             let clusters = inventories::get_inventory_site_clusters(inventories_dir, &site)?;
-            for cluster in clusters {
-                let scripts_cluster_dir = format!("{}/{}/{}", scripts_dir, &site, cluster);
-                let results_cluster_dir = format!("{}/{}/{}", results_dir, &site, cluster);
-                fs::create_dir_all(&scripts_cluster_dir)?;
 
+            for cluster in clusters {
                 let nodes = inventories::get_inventory_site_cluster_nodes(
                     inventories_dir,
                     &site,
                     &cluster,
                 )?;
-                if let Some(node_file) = nodes.first() {
+                let mut cluster_nodes: Vec<(String, String, Node)> = Vec::new();
+
+                // Load each node's metadata as a Node instance
+                for node_file in &nodes {
                     let metadata_file_path =
-                        format!("{}/{}/{}/{}", inventories_dir, &site, &cluster, &node_file);
+                        format!("{}/{}/{}/{}", inventories_dir, &site, &cluster, node_file);
                     let metadata_file_content = std::fs::read_to_string(&metadata_file_path)?;
                     let node: Node = serde_json::from_str(&metadata_file_content)?;
+                    cluster_nodes.push((site.clone(), cluster.clone(), node));
+                }
+                if cluster_nodes.len() > 0 {
+                    clusters_nodes.push(cluster_nodes);
+                }
+            }
+        }
+
+        // Execute round-robin submissions across clusters by node index
+        let mut index = 0;
+        loop {
+            let mut all_clusters_completed = true;
+
+            for cluster_nodes in clusters_nodes.iter() {
+                // Check if this cluster has a node at the current index
+                if let Some((site, cluster, node)) = cluster_nodes.get(index) {
+                    all_clusters_completed = false;
+
                     let node_uid = node.uid.clone();
-
+                    debug!("Draw {} node from list of possible nodes", node_uid);
                     if !self.job_planned_on_node(&node_uid) {
-                        let script_file_path = format!("{}/{}.sh", &scripts_cluster_dir, &node_uid);
-                        let results_node_dir = format!("{}/{}", &results_cluster_dir, &node_uid);
-                        fs::create_dir_all(&results_node_dir)?;
-
-                        let core_values =
-                            configs::generate_core_values(5, node.architecture.nb_cores);
-                        let mut job = Job::new(
-                            self.jobs.len(),
-                            node,
-                            core_values,
-                            script_file_path,
-                            results_node_dir,
-                            metadata_file_path,
-                            site.clone(),
-                        );
-                        let client = reqwest::Client::builder().build()?;
-                        scripts::generate_script_file(&job, events_by_vendor)?;
-                        job.submit_job().await?;
-                        self.jobs.push(job);
-                        self.check_unfinished_jobs(&client, super::BASE_URL, jobs_file)
-                            .await?;
-
                         while self.nb_ongoing_jobs() >= MAX_CONCURRENT_JOBS {
-                            info!("{} jobs are currently in [Waiting|Running|Finishing] state, waits before submitting more", MAX_CONCURRENT_JOBS);
+                            info!(
+                                "{} jobs are currently active; pausing before submitting more",
+                                MAX_CONCURRENT_JOBS
+                            );
                             tokio::time::sleep(std::time::Duration::from_secs(
                                 super::SLEEP_CHECK_TIME_IN_SECONDES,
                             ))
                             .await;
                         }
+                        // Job creation and submission
+                        let core_values =
+                            configs::generate_core_values(5, node.architecture.nb_cores);
+                        let mut job =
+                            Job::new(self.jobs.len(), node.clone(), core_values, site.to_string());
+                        fs::create_dir_all(
+                            std::path::Path::new(&job.script_file).parent().unwrap(),
+                        )?;
+                        fs::create_dir_all(results_dir)?;
+
+                        let client = reqwest::Client::builder().build()?;
+                        scripts::generate_script_file(&job, events_by_vendor)?;
+                        job.submit_job().await?;
+                        self.jobs.push(job);
+                        info!("Job submitted for {} node", node_uid);
+                        info!("Wait 3 secondes before another submission");
+                        tokio::time::sleep(Duration::from_secs(3)).await;
+
+                        self.check_unfinished_jobs(&client, super::BASE_URL, jobs_file)
+                            .await?;
+
+                        // Throttling based on the maximum allowed concurrent jobs
+                        
+                    } else {
+                        info!("Job already listed on {} node, skipping", node_uid);
+                        tokio::time::sleep(Duration::from_secs(3)).await;
                     }
                 }
             }
+
+            if all_clusters_completed {
+                break;
+            }
+            index += 1; // Move to the next node index across clusters
         }
+
         self.dump_to_file(jobs_file)?;
         Ok(())
     }
@@ -308,7 +344,7 @@ impl Jobs {
                 job.state_transition(state).await?;
             }
             if !job.finished() {
-                info!(
+                debug!(
                     "Job {:?} is still in '{}' state.",
                     job.oar_job_id, job.state
                 );
@@ -336,7 +372,7 @@ impl Jobs {
     }
     pub fn dump_to_file(&self, file_path: &str) -> JobResult {
         if !std::path::Path::new(file_path).exists() {
-            info!("Create Jobs File : '{}'", file_path);
+            debug!("Create Jobs File : '{}'", file_path);
         }
         let file = fs::File::create(file_path)?;
         serde_yaml::to_writer(file, self)?;
@@ -358,9 +394,9 @@ pub fn rsync_results(site: &str, cluster: &str, node: &str) -> JobResult {
 
     if let Ok(Some(exit_status)) = p.wait_timeout(Duration::from_secs(120)) {
         if exit_status.success() {
-            info!("Rsync with site {} done.\n{:?}", site, out);
+            debug!("Rsync with site {} done.\n{:?}", site, out);
         } else {
-            info!("Rsync with site {} failed.\n{:?} ; {:?}", site, out, err);
+            debug!("Rsync with site {} failed.\n{:?} ; {:?}", site, out, err);
         }
     } else {
         p.terminate()?;
@@ -378,9 +414,9 @@ pub fn rsync_results(site: &str, cluster: &str, node: &str) -> JobResult {
 
     if let Ok(Some(exit_status)) = p.wait_timeout(Duration::from_secs(120)) {
         if exit_status.success() {
-            info!("Checksum success.\n{:?}", out);
+            debug!("Checksum success.\n{:?}", out);
         } else {
-            info!("Checksum fail.\n{:?} ; {:?}", out, err);
+            debug!("Checksum fail.\n{:?} ; {:?}", out, err);
         }
     } else {
         p.terminate()?;

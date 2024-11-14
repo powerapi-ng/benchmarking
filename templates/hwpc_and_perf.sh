@@ -11,7 +11,7 @@ for i in {1..{{ nb_iterations }}}; do
         powerapi/hwpc-sensor:1.4.0 \
         -n {{ hwpc_and_perf_configs.get(core_value).unwrap().name }}_$i \
         -p {{ hwpc_and_perf_configs.get(core_value).unwrap().cgroup_basepath }} \
-        -r {{ hwpc_and_perf_configs.get(core_value).unwrap().output.type }} -U {{ results_directory }}/hwpc_and_perf_{{ core_value }}/hwpc_and_perf_{{ core_value }}_$i \
+        -r {{ hwpc_and_perf_configs.get(core_value).unwrap().output.type }} -U {{ hwpc_home_directory }}/{{ results_directory }}/hwpc_and_perf_{{ core_value }}/hwpc_and_perf_{{ core_value }}_$i \
         {% if  hwpc_alone_configs.get(core_value).unwrap().system.rapl.events.len() > 0 %} -s "rapl" {%~ for event in hwpc_alone_configs.get(core_value).unwrap().system.rapl.events %}-e "{{ event }}" {% endfor %}{% endif %} {% if  hwpc_alone_configs.get(core_value).unwrap().system.msr.events.len() > 0 %} -s "msr" {%~ for event in hwpc_alone_configs.get(core_value).unwrap().system.msr.events %}-e "{{ event }}" {% endfor %} {% endif %} {% if  hwpc_alone_configs.get(core_value).unwrap().system.core.events.len() > 0 %} -c "core" {%~ for event in hwpc_alone_configs.get(core_value).unwrap().system.core.events %}-e "{{ event }}" {% endfor %} {% endif %}
 
     ### PERF with {{ core_value }} CPU * {{ cpu_ops_per_core }} OPS

@@ -174,7 +174,7 @@ pub async fn get_api_call(
     let username = env::var("G5K_USERNAME").expect("G5K_USERNAME must be set");
     let password = env::var("G5K_PASSWORD").expect("G5K_PASSWORD must be set");
 
-    info!("Scraping {}", endpoint);
+    debug!("Scraping {}", endpoint);
 
     let response = client
         .get(endpoint)
@@ -224,7 +224,7 @@ pub async fn generate_inventory(inventories_dir: &str) -> Result<(), InventoryEr
             let mut nodes = fetch_nodes(&client, super::BASE_URL, &site.uid, &cluster.uid)
                 .await
                 .unwrap();
-            if let Some(node) = nodes.iter_mut().next() {
+            for node in nodes.iter_mut() {
                 if node.is_to_be_deployed() {
                     node.cluster = Some(cluster.uid.clone().to_string());
                     let node_specs_file_path = format!("{}/{}.json", cluster_dir, &node.uid);

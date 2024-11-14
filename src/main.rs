@@ -151,6 +151,8 @@ impl EventsByVendor {
     }
 }
 
+
+
 const LOGS_DIRECTORY: &str = "logs.d";
 const INVENTORIES_DIRECTORY: &str = "inventories.d";
 const JOBS_FILE: &str = "jobs.yaml";
@@ -243,7 +245,7 @@ async fn main() -> Result<(), BenchmarkError> {
     let client = reqwest::Client::builder().build()?;
 
     while !jobs.job_is_done() {
-        info!("Job not done!");
+        debug!("Job not done!");
 
         jobs.check_unfinished_jobs(&client, BASE_URL, JOBS_FILE)
             .await?;

@@ -5,7 +5,7 @@ use crate::jobs;
 use crate::EventsByVendor;
 use crate::PerfEvents;
 use askama::Template;
-use log::info;
+use log::debug;
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
@@ -95,9 +95,9 @@ pub fn generate_script_file(
     events_by_vendor: &EventsByVendor,
 ) -> Result<(), ScriptError> {
     dotenv::dotenv().ok();
-    info!("Creating file : {}", &job.script_file);
+    debug!("Creating file : {}", &job.script_file);
     let mut file = File::create(&job.script_file)?;
-    info!("Created file : {}", &job.script_file);
+    debug!("Created file : {}", &job.script_file);
 
     let (perf_events, hwpc_events) = events_by_vendor.get_events(
         &job.node.processor.vendor,
