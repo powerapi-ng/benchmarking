@@ -39,6 +39,8 @@ pub enum JobError {
     HttpRequest(#[from] reqwest::Error),
     #[error("Rsync failed : {0}")]
     Rsync(#[from] subprocess::PopenError),
+    #[error("Unknown OAR state: {0}")]
+    UnknownState(String),
 }
 
 type JobResult = Result<(), JobError>;
@@ -57,29 +59,38 @@ pub enum OARState {
 
 impl Display for OARState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Hold => write!(f, "Hold"),
-            Self::Waiting => write!(f, "Waiting"),
-            Self::Running => write!(f, "Running"),
-            Self::Terminated => write!(f, "Terminated"),
-            Self::Finishing => write!(f, "Finishing"),
-            Self::Failed => write!(f, "Failed"),
-            Self::NotSubmitted => write!(f, "NotSubmitted"),
-            Self::UnknownState => write!(f, "UnknownState"),
-        }
+        write!(f, "{}", self.to_str())
     }
 }
 
 impl OARState {
-    fn from(state: &str) -> Self {
+    fn to_str(&self) -> &'static str {
+        match self {
+            OARState::NotSubmitted => "NotSubmitted",
+            OARState::Hold => "Hold",
+            OARState::Waiting => "Waiting",
+            OARState::Running => "Running",
+            OARState::Terminated => "Terminated",
+            OARState::Finishing => "Finishing",
+            OARState::Failed => "Failed",
+            OARState::UnknownState => "UnknownState",
+        }
+    }
+}
+
+impl TryFrom<&str> for OARState {
+    type Error = JobError;
+
+    fn try_from(state: &str) -> Result<Self, Self::Error> {
         match state {
-            "running" => OARState::Running,
-            "error" => OARState::Failed,
-            "waiting" => OARState::Waiting,
-            "terminated" => OARState::Terminated,
-            "hold" => OARState::Hold,
-            "finishing" => OARState::Finishing,
-            &_ => OARState::UnknownState,
+            "running" => Ok(OARState::Running),
+            "error" => Ok(OARState::Failed),
+            "waiting" => Ok(OARState::Waiting),
+            "terminated" => Ok(OARState::Terminated),
+            "hold" => Ok(OARState::Hold),
+            "finishing" => Ok(OARState::Finishing),
+            "not_submitted" => Ok(OARState::NotSubmitted),
+            unknown => Err(JobError::UnknownState(unknown.to_string())),
         }
     }
 }
@@ -97,120 +108,111 @@ pub struct Job {
 }
 
 impl Job {
+    fn build_script_file_path(node: &Node, site: &str) -> String {
+        format!(
+            "{}/{}/{}/{}.sh",
+            super::SCRIPTS_DIRECTORY,
+            site,
+            node.cluster.as_ref().unwrap(),
+            node.uid
+        )
+    }
+
+    fn build_results_dir_path(node: &Node, site: &str) -> String {
+        format!(
+            "{}/{}/{}/{}",
+            super::RESULTS_DIRECTORY,
+            site,
+            node.cluster.as_ref().unwrap(),
+            node.uid
+        )
+    }
+
     fn new(id: usize, node: Node, core_values: Vec<u32>, site: String) -> Self {
-        let cluster = node.cluster.clone().unwrap();
-        let node_uid = node.uid.clone();
+        let script_file = Job::build_script_file_path(&node, &site);
+        let results_dir = Job::build_results_dir_path(&node, &site);
+
         Job {
             id,
             node,
             oar_job_id: None, // Submission through OAR will give this ID
             state: OARState::NotSubmitted, // Default init state
             core_values,
-            script_file: format!(
-                "{}/{}/{}/{}.sh",
-                super::SCRIPTS_DIRECTORY,
-                site,
-                &cluster,
-                &node_uid
-            ),
-            results_dir: format!(
-                "{}/{}/{}/{}",
-                super::RESULTS_DIRECTORY,
-                site,
-                &cluster,
-                &node_uid
-            ),
+            script_file,
+            results_dir,
             site,
         }
     }
+
     fn finished(&self) -> bool {
         self.state == OARState::Terminated || self.state == OARState::Failed
     }
+
     pub async fn submit_job(&mut self) -> JobResult {
-        let site = self.site.clone();
-        let session = ssh::ssh_connect(&site).await?;
-        let script_directory_path = std::path::Path::new(&self.script_file)
-            .parent() // Gets the parent directory
-            .map(|s| s.to_string_lossy().into_owned())
-            .unwrap();
-        let mkdir_argument = format!("-p {}", script_directory_path);
-        debug!(
-            "Command to be executed on host '{}' : {}",
-            site, mkdir_argument
-        );
-        let _mkdir = session
-            .command("mkdir")
-            .arg("-p")
-            .arg(&script_directory_path)
-            .output()
-            .await?;
-        let re = Regex::new(r"OAR_JOB_ID=(\d+)").unwrap();
+        let session = ssh::ssh_connect(&self.site).await?;
+        ssh::create_remote_directory(&session, &self.script_file).await?;
         ssh::sftp_upload(&session, &self.script_file, &self.script_file).await?;
-        let _executable = session
-            .command("chmod")
-            .arg("u+x")
-            .arg(&self.script_file)
-            .output()
-            .await?;
+        ssh::make_script_executable(&session, &self.script_file).await?;
 
-        let oarsub = session
-            .command("oarsub")
-            .arg("-S")
-            .arg(&self.script_file)
-            .output()
-            .await?;
+        let oar_job_id = ssh::run_oarsub(&session, &self.script_file).await;
 
-        if oarsub.status.success() {
-            if let Some(captures) = re.captures(str::from_utf8(&oarsub.stdout).unwrap()) {
-                if let Some(job_id_str) = captures.get(1) {
-                    let oar_job_id = u32::from_str(job_id_str.as_str()).ok().unwrap();
-                    self.oar_job_id = Some(oar_job_id);
-                    self.state = OARState::Waiting;
-                    info!(
-                        "Job successfully submitted with OAR_JOB_ID : {}",
-                        oar_job_id
-                    );
-                }
-            } else {
-                error!("Failed to parse a OAR_JOB_ID");
-            }
+        if let Ok(Some(job_id)) = oar_job_id {
+            self.oar_job_id = Some(job_id);
+            self.state = OARState::Waiting;
         } else {
             self.state = OARState::Failed;
-            error!("Command failed: {:?}", oarsub.stderr);
         }
 
         session.close().await?;
+        Ok(())
+    }
 
+    pub async fn update_job_state(
+        &mut self,
+        client: &reqwest::Client,
+        base_url: &str,
+    ) -> JobResult {
+        let response: HashMap<String, serde_json::Value> = crate::inventories::get_api_call(
+            client,
+            &format!(
+                "{}/sites/{}/jobs/{}",
+                base_url,
+                &self.site,
+                &self.oar_job_id.unwrap()
+            ),
+        )
+        .await
+        .unwrap();
+        let state: String = serde_json::from_value(response.get("state").unwrap().clone())?;
+        let state = OARState::try_from(state.as_str())?;
+        if state != self.state {
+            self.state_transition(state).await?;
+        }
         Ok(())
     }
 
     pub async fn state_transition(&mut self, new_state: OARState) -> JobResult {
-        self.state = new_state.clone();
         info!(
-            "Job {} with OAR_JOB_ID {:?} changes from {} => {}",
+            "Transitioning Job {} with OAR_JOB_ID {:?} from {} to {}",
             self.id, self.oar_job_id, self.state, new_state
         );
+        self.state = new_state.clone();
 
         match new_state {
-            OARState::Terminated => self.job_teminated().await,
-            OARState::Failed => self.job_teminated().await,
+            OARState::Terminated | OARState::Failed => self.job_terminated().await,
             _ => {
-                error!(
-                    "Transition to {} state is not implemented yet, no actions performed",
-                    new_state
-                );
+                error!("Unhandled state transition to {}", new_state);
                 Ok(())
             }
         }
     }
 
-    pub async fn job_teminated(&mut self) -> JobResult {
-        let site = &self.site;
-        let cluster = self.node.cluster.as_ref().unwrap();
-        let node = &self.node.uid;
-
-        rsync_results(site, cluster, node)?;
-
+    pub async fn job_terminated(&mut self) -> JobResult {
+        rsync_results(
+            &self.site,
+            self.node.cluster.as_deref().unwrap(),
+            &self.node.uid,
+        )?;
         Ok(())
     }
 }
@@ -302,7 +304,6 @@ impl Jobs {
                             .await?;
 
                         // Throttling based on the maximum allowed concurrent jobs
-                        
                     } else {
                         info!("Job already listed on {} node, skipping", node_uid);
                         tokio::time::sleep(Duration::from_secs(3)).await;
@@ -327,22 +328,7 @@ impl Jobs {
         file_to_dump_to: &str,
     ) -> Result<(), JobError> {
         for job in self.jobs.iter_mut().filter(|j| !j.finished()) {
-            let response: HashMap<String, serde_json::Value> = crate::inventories::get_api_call(
-                client,
-                &format!(
-                    "{}/sites/{}/jobs/{}",
-                    base_url,
-                    &job.site,
-                    &job.oar_job_id.unwrap()
-                ),
-            )
-            .await
-            .unwrap();
-            let state: String = serde_json::from_value(response.get("state").unwrap().clone())?;
-            let state = OARState::from(&state);
-            if state != job.state {
-                job.state_transition(state).await?;
-            }
+            job.update_job_state(client, base_url).await?;
             if !job.finished() {
                 debug!(
                     "Job {:?} is still in '{}' state.",
@@ -350,9 +336,11 @@ impl Jobs {
                 );
             }
         }
+
         self.dump_to_file(file_to_dump_to)?;
         Ok(())
     }
+
     fn nb_ongoing_jobs(&self) -> usize {
         self.jobs
             .to_owned()

@@ -1,8 +1,10 @@
 use bytes::BytesMut;
-use log::{debug, error};
+use log::{debug, error, info};
 use openssh::{KnownHosts, Session, Stdio};
 use openssh_sftp_client::Sftp;
+use regex::Regex;
 use std::path::Path;
+use std::str::{self, FromStr};
 use thiserror::Error;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
@@ -15,6 +17,10 @@ pub enum SshError {
     Sftp(#[from] openssh_sftp_client::Error),
     #[error("Could not read script: {0}")]
     Io(#[from] std::io::Error),
+    #[error("Could not read host output: {0}")]
+    Utf8(#[from] str::Utf8Error),
+    #[error("Could not parse int: {0}")]
+    ParseInt(#[from] std::num::ParseIntError),
 }
 
 type SshResult = Result<(), SshError>;
@@ -24,6 +30,59 @@ pub async fn ssh_connect(host: &str) -> Result<Session, SshError> {
     let session = Session::connect_mux(host, KnownHosts::Strict).await?;
     debug!("SSH Connection established with {}", host);
     Ok(session)
+}
+
+pub async fn create_remote_directory(session: &Session, file: &str) -> SshResult {
+    let script_directory = std::path::Path::new(file)
+        .parent()
+        .unwrap()
+        .to_string_lossy()
+        .into_owned();
+
+    session
+        .command("mkdir")
+        .arg("-p")
+        .arg(&script_directory)
+        .output()
+        .await?;
+
+    Ok(())
+}
+
+pub async fn make_script_executable(session: &Session, script_file: &str) -> SshResult {
+    session
+        .command("chmod")
+        .arg("u+x")
+        .arg(script_file)
+        .output()
+        .await?;
+
+    Ok(())
+}
+
+pub async fn run_oarsub(session: &Session, script_file: &str) -> Result<Option<u32>, SshError> {
+    let oarsub_output = session
+        .command("oarsub")
+        .arg("-S")
+        .arg(script_file)
+        .output()
+        .await?;
+
+    if oarsub_output.status.success() {
+        let output_str = str::from_utf8(&oarsub_output.stdout)?;
+        let re = Regex::new(r"OAR_JOB_ID=(\d+)").unwrap();
+        if let Some(captures) = re.captures(output_str) {
+            let job_id = captures.get(1).unwrap().as_str().parse::<u32>()?;
+            info!("Job successfully submitted with OAR_JOB_ID: {}", job_id);
+            Ok(Some(job_id))
+        } else {
+            error!("Failed to parse OAR_JOB_ID");
+            Ok(None)
+        }
+    } else {
+        error!("Job submission failed: {:?}", oarsub_output.stderr);
+        Ok(None)
+    }
 }
 
 // Use OpenSSH Session to upload files though SFTP

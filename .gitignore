@@ -1,5 +1,6 @@
 /logs.d/**/*
 .env
+/Cargo.lock
 /tasks.d/**/*
 /jobs.d/**/*
 /results.d/**/*
