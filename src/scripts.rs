@@ -14,7 +14,7 @@ use thiserror::Error;
 
 const WALLTIME: &str = "4:00:00";
 const QUEUE_TYPE: &str = "default";
-const CPU_OPS_PER_CORE: u32 = 25_000;
+const CPU_OPS_PER_CORE_LIST: &[u32] = &[25, 250, 2_500, 25_000];
 const NB_ITERATIONS: usize = 10;
 const HWPC_HOME_DIRECTORY: &str = "/app";
 
@@ -37,7 +37,7 @@ struct BenchmarkTemplate {
     results_directory: String,
     core_values: Vec<u32>,
     perf_events: PerfEvents,
-    cpu_ops_per_core: u32,
+    cpu_ops_per_core_list: Vec<u32>,
 }
 
 impl BenchmarkTemplate {
@@ -58,7 +58,7 @@ impl BenchmarkTemplate {
         results_directory: String,
         core_values: Vec<u32>,
         perf_events: PerfEvents,
-        cpu_ops_per_core: Option<u32>,
+        cpu_ops_per_core_list: &[u32],
     ) -> Self {
         Self {
             nb_iterations,
@@ -77,7 +77,7 @@ impl BenchmarkTemplate {
             results_directory,
             core_values,
             perf_events,
-            cpu_ops_per_core: cpu_ops_per_core.unwrap_or_default(),
+            cpu_ops_per_core_list: cpu_ops_per_core_list.into(),
         }
     }
 }
@@ -125,7 +125,7 @@ pub fn generate_script_file(
         job.results_dir.clone(),
         job.core_values.clone(),
         perf_events,
-        Some(CPU_OPS_PER_CORE),
+        CPU_OPS_PER_CORE_LIST,
     );
     let benchmark = benchmark.render().unwrap();
     file.write_all(benchmark.as_bytes())?;

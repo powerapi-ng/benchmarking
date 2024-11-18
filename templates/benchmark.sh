@@ -4,6 +4,7 @@ set -ueo pipefail
 
 {% include "oar_directives.sh" %}
 
+SECONDS=0
 ########################
 ### INSTALL PACKAGES ###
 ########################
@@ -43,4 +44,6 @@ set -ueo pipefail
 ############
 ### EXIT ###
 ############
+duration=$SECONDS
+echo "$(($diff / 3600)) hours, $((duration / 60)) minutes and $((duration % 60)) seconds elapsed."
 {% include "exit.sh" %}
