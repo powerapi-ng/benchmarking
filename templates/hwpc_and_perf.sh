@@ -15,6 +15,7 @@ for i in {1..{{ nb_iterations }}}; do
         -r {{ hwpc_and_perf_configs.get(core_value).unwrap().output.type }} -U {{ hwpc_home_directory }}/{{ results_directory }}/hwpc_and_perf_{{ core_value }}/hwpc_and_perf_{{ core_value }}_{{ cpu_ops_per_core }}_$i \
         {% if  hwpc_alone_configs.get(core_value).unwrap().system.rapl.events.len() > 0 %} -s "rapl" {%~ for event in hwpc_alone_configs.get(core_value).unwrap().system.rapl.events %}-e "{{ event }}" {% endfor %}{% endif %} {% if  hwpc_alone_configs.get(core_value).unwrap().system.msr.events.len() > 0 %} -s "msr" {%~ for event in hwpc_alone_configs.get(core_value).unwrap().system.msr.events %}-e "{{ event }}" {% endfor %} {% endif %} {% if  hwpc_alone_configs.get(core_value).unwrap().system.core.events.len() > 0 %} -c "core" {%~ for event in hwpc_alone_configs.get(core_value).unwrap().system.core.events %}-e "{{ event }}" {% endfor %} {% endif %}
 
+    while ! [[ -e "{{ results_directory }}/hwpc_and_perf_{{ core_value }}/hwpc_and_perf_{{ core_value }}_{{ cpu_ops_per_core }}_$i/rapl.csv" ]]; do sleep 0.02s ; done
     ### PERF with {{ core_value }} CPU * {{ cpu_ops_per_core }} OPS
     sudo perf stat -a -o /tmp/perf_and_hwpc_{{ core_value }}_{{ cpu_ops_per_core }}_$i {% for perf_event in perf_events.iter() %}-e "{{ perf_event }}" {% endfor %}  stress-ng --cpu {{ core_value }} --cpu-ops {{ core_value * cpu_ops_per_core }} -q 
     cat /tmp/perf_and_hwpc_{{ core_value }}_{{ cpu_ops_per_core }}_$i >> {{ results_directory }}/perf_and_hwpc_{{ core_value }}_{{ cpu_ops_per_core }}
