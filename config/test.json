@@ -1,0 +1,35 @@
+{
+  "vendors" : [
+      {
+      "name": "Intel",
+      "microarchitectures": [
+        {
+          "name": "Skylake-SP",
+          "perf_specific_events": [""],
+          "hwpc_specific_events": {
+            "rapl": [""],
+            "msr": [""],
+            "core": [""]
+          },
+          "versions": ["Gold 6126"]
+        },
+        {
+          "name": "Skylake",
+          "perf_specific_events": [""],
+          "hwpc_specific_events": {
+            "rapl": [""],
+            "msr": [""],
+            "core": [""]
+          },
+          "versions": ["Gold 5118"]
+        }
+      ],
+      "perf_default_events": ["/power/energy-pkg/","/power/energy-ram/"],
+      "hwpc_default_events": {
+        "rapl": ["RAPL_ENERGY_PKG", "RAPL_ENERGY_DRAM"],
+        "msr": ["TSC", "APERF", "MPERF"],
+        "core": ["CPU_CLK_THREAD_UNHALTED:REF_P", "CPU_CLK_THREAD_UNHALTED:THREAD_P", "LLC_MISSES", "INSTRUCTIONS_RETIRED"]
+      }
+    }
+ ]
+}

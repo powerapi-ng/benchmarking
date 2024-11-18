@@ -1,0 +1,17 @@
+/logs.d/**/*
+.env
+/Cargo.lock
+/tasks.d/**/*
+/jobs.d/**/*
+/results.d/**/*
+/scripts.d/**/*
+/inventories.d/**/*
+/backup/**/*
+/test_results/**/*
+/jobs.yaml
+/menage.sh
+
+
+# Added by cargo
+
+/target
