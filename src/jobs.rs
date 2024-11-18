@@ -280,6 +280,10 @@ impl Jobs {
                                 super::SLEEP_CHECK_TIME_IN_SECONDES,
                             ))
                             .await;
+
+                            let client = reqwest::Client::builder().build()?;
+                            self.check_unfinished_jobs(&client, super::BASE_URL, jobs_file)
+                                .await?;
                         }
                         // Job creation and submission
                         let core_values =
@@ -296,8 +300,8 @@ impl Jobs {
                         job.submit_job().await?;
                         self.jobs.push(job);
                         info!("Job submitted for {} node", node_uid);
-                        info!("Wait 3 secondes before another submission");
-                        tokio::time::sleep(Duration::from_secs(3)).await;
+                        info!("Wait 1 secondes before another submission");
+                        tokio::time::sleep(Duration::from_secs(1)).await;
 
                         self.check_unfinished_jobs(&client, super::BASE_URL, jobs_file)
                             .await?;
@@ -305,7 +309,7 @@ impl Jobs {
                         // Throttling based on the maximum allowed concurrent jobs
                     } else {
                         info!("Job already listed on {} node, skipping", node_uid);
-                        tokio::time::sleep(Duration::from_secs(3)).await;
+                        tokio::time::sleep(Duration::from_millis(300)).await;
                     }
                 }
             }
