@@ -1,61 +1,82 @@
-# PowerAPI Benchmark Procedure
+# PowerAPI Framework Benchmarks
 
-This project benchmarks **PowerAPI** measurements and **RAPL** (using performance events) to evaluate variability. The procedures are designed for reproducibility, ensuring consistent results across future versions of PowerAPI, RAPL, and related dependencies.
-
-## Overview
-
-The benchmark involves automating several tasks, including inventory management, job creation and submission, monitoring, and results aggregation. The process is run across the G5K nodes and consists of a series of sequential steps:
-
-1. **Inventory Update**: Create or update a G5K node inventory with metadata (accessible via API), which is subsequently used in further steps.
-2. **Job Generation and Submission**: For each node, generate a job submission and save it in JSON format. Each job file includes:
-     - Paths to generated bash script for the specific node
-     - Metadata file path
-     - Result directory path
-     - The `OAR_JOB_ID` of the submitted job and its state.
-     - The job's site information.
-3. **Job Monitoring**:  
-    - Loop until all jobs reach a “terminal state” ([Finishing | Terminated | Failed]).
-    - For jobs still running or waiting ([Waiting, Launching, Running]), check their status via `oarstat` and update accordingly.
-4. **Results Aggregation** (To Be Implemented): Aggregate raw results into a centralized location.
-5. **Report Generation** (To Be Implemented): Create a summary report from aggregated results.
-
-Steps 4 and 5 are planned but not yet implemented.
-
---- 
-
-## Benchmark Execution Details
-
-The benchmark approach is designed to maximize efficiency and resource utilization by reserving each node only once per benchmark run. The generated scripts handle all necessary steps for each measurement.
-
-### Measurement Collection Workflow
-
-1. **Performance Event Measurements**:
-    - Execute `perf` events for `NB_ITER` iterations with: `perf event -a -o /tmp/perf_${i}.stat -e ${PROCESSOR_CORRESPONDING_EVENTS} stress-ng --cpu ${NB_CPU} --cpu-ops ${NB_CPU_OPS}`
-     - **PROCESSOR_CORRESPONDING_EVENTS** are selected based on a hardcoded mapping.
-     - **NB_CPU** iterates through a list from 1 to the maximum CPU count.
-     - **NB_CPU_OPS** is processed to meet two conditions:
-        - Cumulative `stress-ng` run times stay below the reservation time.
-        - Each measurement uses a consistent operation count.
-
-2. **Aggregation of `perf` Results**:
-    - Once `${NB_ITER}` iterations are complete, aggregate `perf_${i}.stat` files into a single `perf_${NB_CPU}_${NB_CPU_OPS}.csv` stored on NFS.
-
-3. **HWPC Sensor Measurements**:
-    - Execute HWPC measurements, storing the data in CSV format similar to `perf`.
-
-4. **SmartWatts Post-Mortem Processing**:
-    - Generate PowerReports from HWPC data in post-mortem mode.
-
-5. **Final Aggregation**:
-    - Consolidate `[HWPC|SMARTWATTS|PERF]_[NB_CPU]_[NB_CPU_LOAD].csv` files on the NFS storage.
-
-### Key Considerations
-
-- Using **SmartWatts in post-mortem mode** aligns with the variability measurement goals.
-- **Storage Constraints**: NFS storage limits are set at 25GB per site. With uniform node distribution, this equates to an approximate maximum file size of 3.32 MB per aggregated result file, which is manageable.
-- **Run Repetition**: Each `stress-ng` run will be executed **30 times** to establish statistical robustness.
+Here’s how the **"What it does"** section could look based on the content you provided:
 
 ---
+
+## What It Does
+
+This repository contains the source code for generating and running benchmarks for the **PowerAPI Framework**. These benchmarks are designed to adapt to the configuration and architecture of underlying nodes in the **Grid5000** infrastructure. 
+
+### Key Processes:
+
+1. **Gather Node Information**: The benchmarks start by scraping the Grid5000 API to collect details about all available nodes.
+2. **Reuse Existing Job List (Optional)**: If a `jobs.yaml` file exists, the tool can leverage it to initialize the job list.
+3. **Generate Bash Scripts**: For each filtered node, a custom bash script is generated using templates located in the `/templates` directory.
+4. **Submit Jobs via OAR**: The generated scripts are submitted to corresponding nodes through SSH using **OAR**, ensuring that no more than `N` jobs are simultaneously active.
+5. **Monitor and Collect Results**:
+    - The status of each submitted job is tracked until it completes (either successfully or in a failed state).
+    - Upon completion, **rsync** is used to retrieve the results files locally. If the retrieval fails, the job’s state is marked as `UnknownState` for manual review.
+6. **Store Results**: Once all filtered nodes have completed their benchmark jobs, the benchmarking process concludes, and all result files are stored in the `/results.d` directory.
+
+This automated workflow ensures efficient and scalable benchmarking tailored to the dynamic nature of the Grid5000 environment.
+
+
+## Why it exists.
+
+This benchmarks aim at measuring the variability introduced by the PowerAPI framework over the RAPL interface.
+
+## Who it’s for.
+Currently, this work remains internal for PowerAPI staff to study the variability of the PowerAPI framework along its development.
+
+
+## Installation
+
+To use this repository, you need to clone it locally, ensure you have Cargo installed, and then compile and run the project. Follow the steps below:
+
+### Prerequisites
+
+Before proceeding, make sure your system meets the following requirements:
+
+- **Rust and Cargo**: Install Rust (which includes Cargo, Rust’s package manager and build system). If Rust is not installed, follow the instructions below:
+    1. Download and install Rust by running:
+     ```bash
+     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+     ```
+    2. Follow the on-screen instructions to complete the installation.
+    3. Add Cargo to your PATH (usually done by Rust installer automatically). Restart your terminal if necessary.
+
+- **Dependencies**:
+  - A working installation of **OAR** on your Grid5000 node (or appropriate access).
+  - SSH access configured to interact with the Grid5000 nodes (for example, `ssh rennes` ran locally shall connect you to the rennes' frontend).
+
+### Clone the Repository
+
+Clone this repository to your local machine:
+
+```bash
+git clone https://github.com/powerapi-ng/benchmarking.git
+cd benchmarking
+```
+
+### Build the Project
+
+Compile the project using Cargo:
+
+```bash
+cargo build --release
+```
+
+This will produce an optimized executable located in the `target/release/` directory.
+
+### Run the Project
+
+Execute the compiled program:
+
+```bash
+./target/release/benchmarking
+```
+
 
 # Tips G5k
 
