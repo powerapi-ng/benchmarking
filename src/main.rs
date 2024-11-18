@@ -221,6 +221,13 @@ async fn main() -> Result<(), BenchmarkError> {
     let mut jobs: Jobs = load_or_init_jobs()?;
 
     inventories::generate_inventory(INVENTORIES_DIRECTORY).await?;
+
+    // If we loaded existing jobs, check their status
+    if jobs.jobs.len() != 0 {
+        let client = reqwest::Client::builder().build()?;
+        jobs.check_unfinished_jobs(&client, BASE_URL, JOBS_FILE)
+            .await?;
+    }
     jobs.generate_jobs(
         JOBS_FILE,
         INVENTORIES_DIRECTORY,
