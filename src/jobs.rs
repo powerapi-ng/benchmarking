@@ -75,6 +75,10 @@ impl OARState {
             OARState::UnknownState => "UnknownState",
         }
     }
+
+    fn is_terminal(&self) -> bool {
+        self == &OARState::Terminated || self == &OARState::Failed || self == &OARState::UnknownState
+    }
 }
 
 impl TryFrom<&str> for OARState {
@@ -144,7 +148,7 @@ impl Job {
     }
 
     fn finished(&self) -> bool {
-        self.state == OARState::Terminated || self.state == OARState::Failed
+        self.state.is_terminal()
     }
 
     pub async fn submit_job(&mut self) -> JobResult {
@@ -207,13 +211,16 @@ impl Job {
     }
 
     pub async fn job_terminated(&mut self) -> JobResult {
-        rsync_results(
+        if let Err(rsync_result) = rsync_results(
             &self.site,
             self.node.cluster.as_deref().unwrap(),
             &self.node.uid,
-        )?;
+        ) {
+            self.state = OARState::UnknownState;
+        }
         Ok(())
     }
+
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -388,6 +395,7 @@ pub fn rsync_results(site: &str, cluster: &str, node: &str) -> JobResult {
             debug!("Rsync with site {} done.\n{:?}", site, out);
         } else {
             debug!("Rsync with site {} failed.\n{:?} ; {:?}", site, out, err);
+            return Err(JobError::UnknownState("Rsync failed".to_string()))
         }
     } else {
         p.terminate()?;
@@ -408,6 +416,7 @@ pub fn rsync_results(site: &str, cluster: &str, node: &str) -> JobResult {
             debug!("Checksum success.\n{:?}", out);
         } else {
             debug!("Checksum fail.\n{:?} ; {:?}", out, err);
+            return Err(JobError::UnknownState("Checksum failed".to_string()))
         }
     } else {
         p.terminate()?;
