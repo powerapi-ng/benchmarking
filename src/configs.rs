@@ -1,5 +1,6 @@
 use crate::HwpcEvents;
 use rand::Rng;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt;
 use thiserror::Error;
@@ -12,7 +13,26 @@ pub enum ConfigError {
     SerdeJSON(#[from] serde_json::Error),
 }
 
-#[derive(Debug, Clone)]
+pub trait PrettyDisplay: serde::Serialize {
+    fn fmt_pretty(&self) -> String {
+        serde_json::to_string_pretty(self).unwrap_or_default()
+    }
+}
+
+macro_rules! impl_pretty_display {
+    ($($t:ty),+) => {
+        $(
+            impl PrettyDisplay for $t {}
+            impl fmt::Display for $t {
+                fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                    write!(f, "{}", self.fmt_pretty())
+                }
+            }
+        )+
+    };
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub struct HwpcConfig {
     pub name: String,
     pub verbose: bool,
@@ -21,70 +41,50 @@ pub struct HwpcConfig {
     pub output: HwpcOutput,
     pub system: HwpcSystem,
 }
-impl fmt::Display for HwpcConfig {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "name: {},\nverbose: {},\ncgroup_basepath: {},\nfrequency: {},\noutput: {},\nsystem: {}", self.name, self.verbose, self.system, self.frequency, self.output, self.system)
-    }
-}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct HwpcOutput {
     pub r#type: String,
 }
-impl fmt::Display for HwpcOutput {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "type: {}", self.r#type)
-    }
-}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct HwpcSystem {
     pub rapl: HwpcSystemRapl,
     pub msr: HwpcSystemMsr,
     pub core: HwpcSystemCore,
 }
-impl fmt::Display for HwpcSystem {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "HwpcSystem(rapl: {},\nmsr: {},\ncore: {})",
-            self.rapl, self.msr, self.core
-        )
-    }
-}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct HwpcSystemRapl {
     pub events: Vec<String>,
     pub monitoring_type: String,
 }
-impl fmt::Display for HwpcSystemRapl {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "HwpcSystemRapl(events: {:?},\nmonitoring_type: {})",
-            self.events, self.monitoring_type
-        )
-    }
-}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct HwpcSystemMsr {
     pub events: Vec<String>,
 }
-impl fmt::Display for HwpcSystemMsr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "events: {:?}", self.events)
-    }
-}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct HwpcSystemCore {
     pub events: Vec<String>,
 }
+
+impl_pretty_display!(
+    HwpcConfig,
+    HwpcOutput,
+    HwpcSystem,
+    HwpcSystemRapl,
+    HwpcSystemMsr
+);
+
 impl fmt::Display for HwpcSystemCore {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "events: {:?}", self.events)
+        write!(
+            f,
+            "{}",
+            serde_json::to_string_pretty(self).unwrap_or_default()
+        )
     }
 }
 
@@ -106,46 +106,67 @@ pub fn generate_core_values(n: usize, max: u32) -> Vec<u32> {
     values
 }
 
+fn build_hwpc_system(hwpc_events: &HwpcEvents) -> HwpcSystem {
+    HwpcSystem {
+        rapl: HwpcSystemRapl {
+            events: hwpc_events.rapl.clone(),
+            monitoring_type: "MONITOR_ONE_CPU_PER_SOCKET".to_owned(),
+        },
+        msr: HwpcSystemMsr {
+            events: hwpc_events.msr.clone(),
+        },
+        core: HwpcSystemCore {
+            events: hwpc_events.core.clone(),
+        },
+    }
+}
+
+fn build_hwpc_config(name: String, system: HwpcSystem) -> HwpcConfig {
+    HwpcConfig {
+        name,
+        verbose: true,
+        cgroup_basepath: "/sys/fs/cgroup/perf_event".to_owned(),
+        frequency: 1000,
+        output: HwpcOutput {
+            r#type: "csv".to_owned(),
+        },
+        system,
+    }
+}
+
 pub fn generate_hwpc_configs(
     hwpc_events: &HwpcEvents,
-    core_values: &Vec<u32>,
+    core_values: &[u32],
     prefix: &str,
 ) -> HashMap<u32, HwpcConfig> {
-    let mut hwpc_configs = HashMap::new();
+    let hwpc_system = build_hwpc_system(hwpc_events);
+    core_values
+        .iter()
+        .map(|&core_value| {
+            let name = format!("{}_sensor_{}", prefix, core_value);
+            (core_value, build_hwpc_config(name, hwpc_system.clone()))
+        })
+        .collect()
+}
 
-    let hwpc_system_rapl = HwpcSystemRapl {
-        events: hwpc_events.rapl.clone(),
-        monitoring_type: "MONITOR_ONE_CPU_PER_SOCKET".to_owned(),
-    };
-    let hwpc_system_msr = HwpcSystemMsr {
-        events: hwpc_events.msr.clone(),
-    };
-    let hwpc_system_core = HwpcSystemCore {
-        events: hwpc_events.core.clone(),
-    };
+#[cfg(test)]
+mod tests {
+    use super::*;
+    const MAX_VALUE: u32 = 100;
+    const NB_VALUE: usize = 10;
 
-    let hwpc_system = HwpcSystem {
-        rapl: hwpc_system_rapl,
-        msr: hwpc_system_msr,
-        core: hwpc_system_core,
-    };
-
-    for core_value in core_values {
-        let hwpc_output = HwpcOutput {
-            r#type: "csv".to_owned(),
-        };
-
-        let hwpc_config = HwpcConfig {
-            name: format!("{}_sensor_{}", prefix, core_value),
-            verbose: true,
-            cgroup_basepath: "/sys/fs/cgroup/perf_event".to_owned(),
-            frequency: 1000,
-            output: hwpc_output,
-            system: hwpc_system.clone(),
-        };
-
-        hwpc_configs.insert(*core_value, hwpc_config);
+    #[test]
+    fn test_generate_core_values() {
+        let values = generate_core_values(NB_VALUE, MAX_VALUE);
+        assert!(values.len() > 0);
+        assert!(values
+            .iter()
+            .all(|&v| v <= MAX_VALUE && !v.is_power_of_two()));
     }
 
-    hwpc_configs
+    #[test]
+    fn test_max_is_present() {
+        let values = generate_core_values(NB_VALUE, MAX_VALUE);
+        assert!(values.contains(&MAX_VALUE));
+    }
 }
