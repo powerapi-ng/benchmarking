@@ -1,9 +1,5 @@
 # PowerAPI Framework Benchmarks
 
-Here’s how the **"What it does"** section could look based on the content you provided:
-
----
-
 ## What It Does
 
 This repository contains the source code for generating and running benchmarks for the **PowerAPI Framework**. These benchmarks are designed to adapt to the configuration and architecture of underlying nodes in the **Grid5000** infrastructure. 
@@ -18,9 +14,6 @@ This repository contains the source code for generating and running benchmarks f
     - The status of each submitted job is tracked until it completes (either successfully or in a failed state).
     - Upon completion, **rsync** is used to retrieve the results files locally. If the retrieval fails, the job’s state is marked as `UnknownState` for manual review.
 6. **Store Results**: Once all filtered nodes have completed their benchmark jobs, the benchmarking process concludes, and all result files are stored in the `/results.d` directory.
-
-This automated workflow ensures efficient and scalable benchmarking tailored to the dynamic nature of the Grid5000 environment.
-
 
 ## Why it exists.
 
@@ -76,7 +69,8 @@ Execute the compiled program:
 ```bash
 ./target/release/benchmarking
 ```
-
+  
+You may stop the execution of the process and start it again later, as long as the "jobs.yaml" file is present so the necessary information can be retrieved.  
 
 # Tips G5k
 
