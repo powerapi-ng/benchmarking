@@ -27,3 +27,4 @@ flate2 = { version = "1.0.34", features = ["zlib"] }
 tar = "0.4.43"
 bytes = "1.8.0"
 subprocess = "0.2.9"
+clap = { version = "4.5.21", features = ["derive"] }

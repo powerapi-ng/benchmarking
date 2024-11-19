@@ -7,6 +7,7 @@ mod ssh;
 
 use crate::jobs::Jobs;
 use chrono::Local;
+use clap::Parser;
 use derive_more::Display;
 use env_logger::Builder;
 use inventories::StrOrFloat;
@@ -28,7 +29,16 @@ const JOBS_FILE: &str = "jobs.yaml";
 const SCRIPTS_DIRECTORY: &str = "scripts.d";
 const RESULTS_DIRECTORY: &str = "results.d";
 const CONFIG_FILE: &str = "config/events_by_vendor.json";
-//
+
+#[derive(Parser, Debug)]
+#[command(version, about = "Benchmark tool for PowerAPI Framework")]
+struct BenchmarkArgs {
+    /// Skip the scrapping against Grid5000 API refreshing node configurations
+    #[arg(short, long)]
+    skip_inventory: bool,
+}
+
+
 type BenchmarkResult = Result<(), BenchmarkError>;
 #[derive(Error, Debug)]
 pub enum BenchmarkError {
@@ -209,19 +219,24 @@ fn load_or_init_jobs() -> Result<Jobs, BenchmarkError> {
 
 #[tokio::main]
 async fn main() -> Result<(), BenchmarkError> {
+    let benchmark_args = BenchmarkArgs::parse();
+
     dotenv::dotenv().ok();
     let log_level = env::var("LOG_LEVEL").unwrap_or_else(|_| "debug".to_string());
     build_logger(&log_level).unwrap();
     info!("Starting Benchmarks!");
     debug!("LOG_LEVEL is : {:?}", &log_level);
 
+
+
     init_directories()?;
 
     let events_by_vendor = load_events_config()?;
     let mut jobs: Jobs = load_or_init_jobs()?;
-
-    inventories::generate_inventory(INVENTORIES_DIRECTORY).await?;
-
+    
+    if ! benchmark_args.skip_inventory {
+        inventories::generate_inventory(INVENTORIES_DIRECTORY).await?;
+    }
     // If we loaded existing jobs, check their status
     if jobs.jobs.len() != 0 {
         let client = reqwest::Client::builder().build()?;
