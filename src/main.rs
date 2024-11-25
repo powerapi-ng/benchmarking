@@ -35,7 +35,41 @@ const CONFIG_FILE: &str = "config/events_by_vendor.json";
 struct BenchmarkArgs {
     /// Skip the scrapping against Grid5000 API refreshing node configurations
     #[arg(short, long)]
-    skip_inventory: bool,
+    inventory_skip: bool,
+
+    /// Skip the jobs generation/submission step
+    #[arg(short, long)]
+    jobs_skip: bool,
+
+    /// Skip the results processing step
+    #[arg(short, long)]
+    results_process_skip: bool,
+
+    /// Directory to store logs
+    #[arg(long, default_value = LOGS_DIRECTORY)]
+    logs_directory: String,
+
+    /// Directory to store nodes metadata
+    #[arg(long, default_value = INVENTORIES_DIRECTORY)]
+    inventories_directory: String,
+
+    /// File to store OAR jobs info
+    #[arg(long, default_value = JOBS_FILE)]
+    jobs_file: String,
+
+    /// Directory to store generated scripts
+    #[arg(long, default_value = SCRIPTS_DIRECTORY)]
+    scripts_directory: String,
+
+    /// Directory to store results / retrieve results to process
+    #[arg(long, default_value = RESULTS_DIRECTORY)]
+    results_directory: String,
+
+    /// File to find events / process for hwpc and perf
+    #[arg(long, default_value = CONFIG_FILE)]
+    config_file: String,
+
+
 }
 
 
@@ -63,6 +97,14 @@ pub struct HwpcEvents {
     rapl: Vec<String>,
     msr: Vec<String>,
     core: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+enum PerfEvent {
+    PowerEnergyPkg,
+    PowerEnergyDram,
+    PowerEnergyPsys,
+    PowerEnergyCores,
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -161,12 +203,12 @@ impl EventsByVendor {
 }
 
 // Creates all directories if not already existing
-fn init_directories() -> BenchmarkResult {
+fn init_directories(logs_directory: &str, inventories_directory: &str, scripts_directory: &str, results_directory: &str) -> BenchmarkResult {
     let directories = [
-        LOGS_DIRECTORY,
-        INVENTORIES_DIRECTORY,
-        SCRIPTS_DIRECTORY,
-        RESULTS_DIRECTORY,
+        logs_directory,
+        inventories_directory,
+        scripts_directory,
+        results_directory,
     ];
 
     for dir in directories {
@@ -200,16 +242,16 @@ fn build_logger(log_level: &str) -> Result<(), log::SetLoggerError> {
         .try_init()
 }
 
-fn load_events_config() -> Result<EventsByVendor, std::io::Error> {
-    let content = fs::read_to_string(CONFIG_FILE)?;
+fn load_events_config(config_file: &str) -> Result<EventsByVendor, std::io::Error> {
+    let content = fs::read_to_string(config_file)?;
     let events: EventsByVendor = serde_json::from_str(&content)?;
     Ok(events)
 }
 
-fn load_or_init_jobs() -> Result<Jobs, BenchmarkError> {
-    if std::path::Path::new(JOBS_FILE).exists() {
+fn load_or_init_jobs(jobs_file: &str) -> Result<Jobs, BenchmarkError> {
+    if std::path::Path::new(jobs_file).exists() {
         info!("Found jobs.yaml file, processing with existing jobs");
-        let content = fs::read_to_string(JOBS_FILE)?;
+        let content = fs::read_to_string(jobs_file)?;
         Ok(serde_yaml::from_str(&content)?)
     } else {
         info!("No jobs.yaml file found, starting with an empty job list");
@@ -229,37 +271,55 @@ async fn main() -> Result<(), BenchmarkError> {
 
 
 
-    init_directories()?;
+    init_directories(
+        &benchmark_args.logs_directory,
+        &benchmark_args.inventories_directory,
+        &benchmark_args.scripts_directory,
+        &benchmark_args.results_directory,
+        )?;
 
-    let events_by_vendor = load_events_config()?;
-    let mut jobs: Jobs = load_or_init_jobs()?;
+    let events_by_vendor = load_events_config(&benchmark_args.config_file)?;
+    let mut jobs: Jobs = load_or_init_jobs(&benchmark_args.jobs_file)?;
     
-    if ! benchmark_args.skip_inventory {
+    if ! benchmark_args.inventory_skip {
+        info!("Processing inventory step");
         inventories::generate_inventory(INVENTORIES_DIRECTORY).await?;
+    } else {
+        info!("Skipping inventory scrapping as requested");
     }
-    // If we loaded existing jobs, check their status
-    if jobs.jobs.len() != 0 {
+
+    if ! benchmark_args.jobs_skip {
+        info!("Processing jobs step");
+        // If we loaded existing jobs, check their status
+        if jobs.jobs.len() != 0 {
+            let client = reqwest::Client::builder().build()?;
+            jobs.check_unfinished_jobs(&client, BASE_URL, JOBS_FILE)
+                .await?;
+        }
+
+        jobs.generate_jobs(
+            JOBS_FILE,
+            INVENTORIES_DIRECTORY,
+            SCRIPTS_DIRECTORY,
+            RESULTS_DIRECTORY,
+            &events_by_vendor,
+        )
+        .await?;
+
         let client = reqwest::Client::builder().build()?;
-        jobs.check_unfinished_jobs(&client, BASE_URL, JOBS_FILE)
-            .await?;
-    }
-    jobs.generate_jobs(
-        JOBS_FILE,
-        INVENTORIES_DIRECTORY,
-        SCRIPTS_DIRECTORY,
-        RESULTS_DIRECTORY,
-        &events_by_vendor,
-    )
-    .await?;
 
-    let client = reqwest::Client::builder().build()?;
-
-    while !jobs.job_is_done() {
-        debug!("Job not done!");
-        jobs.check_unfinished_jobs(&client, BASE_URL, JOBS_FILE)
-            .await?;
-        tokio::time::sleep(Duration::from_secs(SLEEP_CHECK_TIME_IN_SECONDES)).await;
+        while !jobs.job_is_done() {
+            debug!("Job not done!");
+            jobs.check_unfinished_jobs(&client, BASE_URL, JOBS_FILE)
+                .await?;
+            tokio::time::sleep(Duration::from_secs(SLEEP_CHECK_TIME_IN_SECONDES)).await;
+        }
+    } else {
+        info!("Skipping jobs generation and submission as requested");
     }
+
+
+    results::process_results()?;
 
     Ok(())
 }
