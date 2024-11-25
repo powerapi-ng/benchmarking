@@ -316,7 +316,7 @@ impl Jobs {
                         // Throttling based on the maximum allowed concurrent jobs
                     } else {
                         info!("Job already listed on {} node, skipping", node_uid);
-                        tokio::time::sleep(Duration::from_millis(300)).await;
+                        tokio::time::sleep(Duration::from_millis(100)).await;
                     }
                 }
             }
