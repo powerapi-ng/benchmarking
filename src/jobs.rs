@@ -111,29 +111,29 @@ pub struct Job {
 }
 
 impl Job {
-    fn build_script_file_path(node: &Node, site: &str) -> String {
+    fn build_script_file_path(node: &Node, site: &str, root_scripts_dir: &str) -> String {
         format!(
             "{}/{}/{}/{}.sh",
-            super::SCRIPTS_DIRECTORY,
+            root_scripts_dir,
             site,
             node.cluster.as_ref().unwrap(),
             node.uid
         )
     }
 
-    fn build_results_dir_path(node: &Node, site: &str) -> String {
+    fn build_results_dir_path(node: &Node, site: &str, root_results_dir: &str) -> String {
         format!(
             "{}/{}/{}/{}",
-            super::RESULTS_DIRECTORY,
+            root_results_dir,
             site,
             node.cluster.as_ref().unwrap(),
             node.uid
         )
     }
 
-    fn new(id: usize, node: Node, core_values: Vec<u32>, site: String) -> Self {
-        let script_file = Job::build_script_file_path(&node, &site);
-        let results_dir = Job::build_results_dir_path(&node, &site);
+    fn new(id: usize, node: Node, core_values: Vec<u32>, site: String, root_scripts_dir: &str, root_results_dir: &str) -> Self {
+        let script_file = Job::build_script_file_path(&node, &site, root_scripts_dir);
+        let results_dir = Job::build_results_dir_path(&node, &site, root_results_dir);
 
         Job {
             id,
@@ -296,7 +296,7 @@ impl Jobs {
                         let core_values =
                             configs::generate_core_values(5, node.architecture.nb_cores);
                         let mut job =
-                            Job::new(self.jobs.len(), node.clone(), core_values, site.to_string());
+                            Job::new(self.jobs.len(), node.clone(), core_values, site.to_string(), scripts_dir, results_dir);
                         fs::create_dir_all(
                             std::path::Path::new(&job.script_file).parent().unwrap(),
                         )?;

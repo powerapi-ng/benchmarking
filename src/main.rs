@@ -283,7 +283,7 @@ async fn main() -> Result<(), BenchmarkError> {
     
     if ! benchmark_args.inventory_skip {
         info!("Processing inventory step");
-        inventories::generate_inventory(INVENTORIES_DIRECTORY).await?;
+        inventories::generate_inventory(&benchmark_args.inventories_directory).await?;
     } else {
         info!("Skipping inventory scrapping as requested");
     }
@@ -293,15 +293,15 @@ async fn main() -> Result<(), BenchmarkError> {
         // If we loaded existing jobs, check their status
         if jobs.jobs.len() != 0 {
             let client = reqwest::Client::builder().build()?;
-            jobs.check_unfinished_jobs(&client, BASE_URL, JOBS_FILE)
+            jobs.check_unfinished_jobs(&client, BASE_URL, &benchmark_args.jobs_file)
                 .await?;
         }
 
         jobs.generate_jobs(
-            JOBS_FILE,
-            INVENTORIES_DIRECTORY,
-            SCRIPTS_DIRECTORY,
-            RESULTS_DIRECTORY,
+            &benchmark_args.jobs_file,
+            &benchmark_args.inventories_directory,
+            &benchmark_args.scripts_directory,
+            &benchmark_args.results_directory,
             &events_by_vendor,
         )
         .await?;
@@ -310,7 +310,7 @@ async fn main() -> Result<(), BenchmarkError> {
 
         while !jobs.job_is_done() {
             debug!("Job not done!");
-            jobs.check_unfinished_jobs(&client, BASE_URL, JOBS_FILE)
+            jobs.check_unfinished_jobs(&client, BASE_URL, &benchmark_args.jobs_file)
                 .await?;
             tokio::time::sleep(Duration::from_secs(SLEEP_CHECK_TIME_IN_SECONDES)).await;
         }
