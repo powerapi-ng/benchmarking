@@ -3,7 +3,8 @@ use crate::configs;
 use crate::inventories::{self, Node};
 use crate::scripts;
 use crate::ssh;
-use log::{debug, error, info};
+use crate::results;
+use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::collections::HashMap;
@@ -11,8 +12,10 @@ use std::fmt::{self, Display};
 use std::str::{self};
 use std::time::Duration;
 use std::{env, fs};
+use std::path::{Path, PathBuf};
 use subprocess::{Popen, PopenConfig, Redirection};
 use thiserror::Error;
+use std::process::Command;
 
 const MAX_CONCURRENT_JOBS: usize = 20;
 
@@ -217,6 +220,12 @@ impl Job {
             &self.node.uid,
         ) {
             self.state = OARState::UnknownState;
+        } else {
+            if let Ok(_extracted) = extract_tar_xz(&self.results_dir) {
+                results::process_results(&self.results_dir)?;
+            } else {
+                warn!("Could not extract tar");
+            }
         }
         Ok(())
     }
@@ -345,6 +354,7 @@ impl Jobs {
                     job.oar_job_id, job.state
                 );
             }
+            tokio::time::sleep(Duration::from_secs(5)).await;
         }
 
         self.dump_to_file(file_to_dump_to)?;
@@ -420,6 +430,55 @@ pub fn rsync_results(site: &str, cluster: &str, node: &str) -> JobResult {
         }
     } else {
         p.terminate()?;
+    }
+
+    Ok(())
+}
+
+fn extract_tar_xz(dir_path: &str) -> Result <(), String> {
+    let dir = Path::new(dir_path);
+
+    let tar_xz_name = match dir.file_name() {
+        Some(name) => {
+            let mut archive_name = PathBuf::from(name);
+            archive_name.set_extension("tar.xz");
+            archive_name
+        }
+        None => return Err("Failed to compute archive name from directory path.".to_string()),
+    };
+
+    let archive_path = dir.parent().unwrap_or_else(|| Path::new(".")).join(&tar_xz_name);
+
+    if !archive_path.exists() {
+        return Err(format!("Archive not found: {:?}", archive_path));
+    }
+
+    let output_5 = Command::new("tar")
+        .arg("-xf")
+        .arg(&archive_path)
+        .arg("--strip-components=5") // Strips the leading directory components
+        .arg("-C")
+        .arg(dir.parent().unwrap_or_else(|| Path::new(".")))
+        .output()
+        .map_err(|e| format!("Failed to execute tar command stripping 5: {}", e))?;
+
+    if !output_5.status.success() {
+        let output_3 = Command::new("tar")
+            .arg("-xf")
+            .arg(&archive_path)
+            .arg("--strip-components=3") // Strips the leading directory components
+            .arg("-C")
+            .arg(dir.parent().unwrap_or_else(|| Path::new(".")))
+            .output()
+            .map_err(|e| format!("Failed to execute tar command stripping 3: {}", e))?;
+
+        if !output_3.status.success() {
+
+            return Err(format!(
+                "tar command failed with error: {}",
+                String::from_utf8_lossy(&output_3.stderr)
+            ));
+        }
     }
 
     Ok(())
