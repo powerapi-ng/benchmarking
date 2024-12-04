@@ -21,7 +21,7 @@ use std::{fmt, fs, time::Duration};
 use thiserror::Error;
 
 const SUPPORTED_PROCESSOR_VENDOR: &[&str; 3] = &["Intel", "AMD", "Cavium"];
-const SLEEP_CHECK_TIME_IN_SECONDES: u64 = 300;
+const SLEEP_CHECK_TIME_IN_SECONDES: u64 = 900;
 const BASE_URL: &str = "https://api.grid5000.fr/stable"; // URL de base de l'API
 const LOGS_DIRECTORY: &str = "logs.d";
 const INVENTORIES_DIRECTORY: &str = "inventories.d";
@@ -250,7 +250,7 @@ fn load_events_config(config_file: &str) -> Result<EventsByVendor, std::io::Erro
 
 fn load_or_init_jobs(jobs_file: &str) -> Result<Jobs, BenchmarkError> {
     if std::path::Path::new(jobs_file).exists() {
-        info!("Found jobs.yaml file, processing with existing jobs");
+        info!("Found {} file, processing with existing jobs", jobs_file);
         let content = fs::read_to_string(jobs_file)?;
         Ok(serde_yaml::from_str(&content)?)
     } else {
@@ -318,8 +318,6 @@ async fn main() -> Result<(), BenchmarkError> {
         info!("Skipping jobs generation and submission as requested");
     }
 
-
-    results::process_results()?;
 
     Ok(())
 }
