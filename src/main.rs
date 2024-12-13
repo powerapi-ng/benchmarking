@@ -284,6 +284,19 @@ async fn main() -> Result<(), BenchmarkError> {
     if ! benchmark_args.inventory_skip {
         info!("Processing inventory step");
         inventories::generate_inventory(&benchmark_args.inventories_directory).await?;
+        /*
+         * This code shall be extracted into a proper utilitary function
+        let client = reqwest::Client::builder().build()?;
+        for job in jobs.jobs.iter_mut() {
+            debug!("Updating node info for node {} on job {}", job.node.uid, job.id);
+            if let Err(_job_update_status) = job.update_node(&client, BASE_URL).await {
+                break
+            }
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+        jobs.dump_to_file(JOBS_FILE)?;
+        */
+
     } else {
         info!("Skipping inventory scrapping as requested");
     }
