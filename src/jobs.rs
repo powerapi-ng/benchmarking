@@ -230,6 +230,21 @@ impl Job {
         Ok(())
     }
 
+    pub async fn update_node(&mut self, client: &reqwest::Client, base_url: &str) -> JobResult {
+
+        let cluster = self.node.cluster.clone().unwrap();
+        if let Ok(nodes) = inventories::fetch_nodes(&client, base_url, &self.site, &cluster).await {
+
+            let node: Node = nodes.into_iter().find(|node| node.uid == self.node.uid).unwrap();
+
+            debug!("Cluster : {} ; Node : {} ; os : {:?}", cluster, node.uid, node.operating_system);
+            self.node = node;
+        } else {
+            warn!("Could not gather nodes");
+        }
+        Ok(())
+    }
+
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -316,8 +331,8 @@ impl Jobs {
                         job.submit_job().await?;
                         self.jobs.push(job);
                         info!("Job submitted for {} node", node_uid);
-                        info!("Wait 1 secondes before another submission");
-                        tokio::time::sleep(Duration::from_secs(1)).await;
+                        info!("Wait 100 ms before another submission");
+                        tokio::time::sleep(Duration::from_millis(100)).await;
 
                         self.check_unfinished_jobs(&client, super::BASE_URL, jobs_file)
                             .await?;
@@ -354,7 +369,7 @@ impl Jobs {
                     job.oar_job_id, job.state
                 );
             }
-            tokio::time::sleep(Duration::from_secs(5)).await;
+            tokio::time::sleep(Duration::from_millis(100)).await;
         }
 
         self.dump_to_file(file_to_dump_to)?;

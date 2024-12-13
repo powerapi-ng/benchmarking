@@ -8,7 +8,6 @@ use std::fs::File;
 use std::io::{self, BufRead, BufReader, Write};
 use std::fs;
 use std::collections::HashMap;
-use plotters::prelude::*;
 
 #[derive(Error, Debug)]
 pub enum ResultError {
