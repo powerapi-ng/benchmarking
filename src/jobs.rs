@@ -3,7 +3,8 @@ use crate::configs;
 use crate::inventories::{self, Node};
 use crate::scripts;
 use crate::ssh;
-use log::{debug, error, info};
+use crate::results;
+use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::collections::HashMap;
@@ -11,8 +12,10 @@ use std::fmt::{self, Display};
 use std::str::{self};
 use std::time::Duration;
 use std::{env, fs};
+use std::path::{Path, PathBuf};
 use subprocess::{Popen, PopenConfig, Redirection};
 use thiserror::Error;
+use std::process::Command;
 
 const MAX_CONCURRENT_JOBS: usize = 20;
 
@@ -111,29 +114,29 @@ pub struct Job {
 }
 
 impl Job {
-    fn build_script_file_path(node: &Node, site: &str) -> String {
+    fn build_script_file_path(node: &Node, site: &str, root_scripts_dir: &str) -> String {
         format!(
             "{}/{}/{}/{}.sh",
-            super::SCRIPTS_DIRECTORY,
+            root_scripts_dir,
             site,
             node.cluster.as_ref().unwrap(),
             node.uid
         )
     }
 
-    fn build_results_dir_path(node: &Node, site: &str) -> String {
+    fn build_results_dir_path(node: &Node, site: &str, root_results_dir: &str) -> String {
         format!(
             "{}/{}/{}/{}",
-            super::RESULTS_DIRECTORY,
+            root_results_dir,
             site,
             node.cluster.as_ref().unwrap(),
             node.uid
         )
     }
 
-    fn new(id: usize, node: Node, core_values: Vec<u32>, site: String) -> Self {
-        let script_file = Job::build_script_file_path(&node, &site);
-        let results_dir = Job::build_results_dir_path(&node, &site);
+    fn new(id: usize, node: Node, core_values: Vec<u32>, site: String, root_scripts_dir: &str, root_results_dir: &str) -> Self {
+        let script_file = Job::build_script_file_path(&node, &site, root_scripts_dir);
+        let results_dir = Job::build_results_dir_path(&node, &site, root_results_dir);
 
         Job {
             id,
@@ -217,6 +220,27 @@ impl Job {
             &self.node.uid,
         ) {
             self.state = OARState::UnknownState;
+        } else {
+            if let Ok(_extracted) = extract_tar_xz(&self.results_dir) {
+                results::process_results(&self.results_dir)?;
+            } else {
+                warn!("Could not extract tar");
+            }
+        }
+        Ok(())
+    }
+
+    pub async fn update_node(&mut self, client: &reqwest::Client, base_url: &str) -> JobResult {
+
+        let cluster = self.node.cluster.clone().unwrap();
+        if let Ok(nodes) = inventories::fetch_nodes(&client, base_url, &self.site, &cluster).await {
+
+            let node: Node = nodes.into_iter().find(|node| node.uid == self.node.uid).unwrap();
+
+            debug!("Cluster : {} ; Node : {} ; os : {:?}", cluster, node.uid, node.operating_system);
+            self.node = node;
+        } else {
+            warn!("Could not gather nodes");
         }
         Ok(())
     }
@@ -296,7 +320,7 @@ impl Jobs {
                         let core_values =
                             configs::generate_core_values(5, node.architecture.nb_cores);
                         let mut job =
-                            Job::new(self.jobs.len(), node.clone(), core_values, site.to_string());
+                            Job::new(self.jobs.len(), node.clone(), core_values, site.to_string(), scripts_dir, results_dir);
                         fs::create_dir_all(
                             std::path::Path::new(&job.script_file).parent().unwrap(),
                         )?;
@@ -307,8 +331,8 @@ impl Jobs {
                         job.submit_job().await?;
                         self.jobs.push(job);
                         info!("Job submitted for {} node", node_uid);
-                        info!("Wait 1 secondes before another submission");
-                        tokio::time::sleep(Duration::from_secs(1)).await;
+                        info!("Wait 100 ms before another submission");
+                        tokio::time::sleep(Duration::from_millis(100)).await;
 
                         self.check_unfinished_jobs(&client, super::BASE_URL, jobs_file)
                             .await?;
@@ -316,7 +340,7 @@ impl Jobs {
                         // Throttling based on the maximum allowed concurrent jobs
                     } else {
                         info!("Job already listed on {} node, skipping", node_uid);
-                        tokio::time::sleep(Duration::from_millis(300)).await;
+                        tokio::time::sleep(Duration::from_millis(100)).await;
                     }
                 }
             }
@@ -345,6 +369,7 @@ impl Jobs {
                     job.oar_job_id, job.state
                 );
             }
+            tokio::time::sleep(Duration::from_millis(100)).await;
         }
 
         self.dump_to_file(file_to_dump_to)?;
@@ -420,6 +445,55 @@ pub fn rsync_results(site: &str, cluster: &str, node: &str) -> JobResult {
         }
     } else {
         p.terminate()?;
+    }
+
+    Ok(())
+}
+
+fn extract_tar_xz(dir_path: &str) -> Result <(), String> {
+    let dir = Path::new(dir_path);
+
+    let tar_xz_name = match dir.file_name() {
+        Some(name) => {
+            let mut archive_name = PathBuf::from(name);
+            archive_name.set_extension("tar.xz");
+            archive_name
+        }
+        None => return Err("Failed to compute archive name from directory path.".to_string()),
+    };
+
+    let archive_path = dir.parent().unwrap_or_else(|| Path::new(".")).join(&tar_xz_name);
+
+    if !archive_path.exists() {
+        return Err(format!("Archive not found: {:?}", archive_path));
+    }
+
+    let output_5 = Command::new("tar")
+        .arg("-xf")
+        .arg(&archive_path)
+        .arg("--strip-components=5") // Strips the leading directory components
+        .arg("-C")
+        .arg(dir.parent().unwrap_or_else(|| Path::new(".")))
+        .output()
+        .map_err(|e| format!("Failed to execute tar command stripping 5: {}", e))?;
+
+    if !output_5.status.success() {
+        let output_3 = Command::new("tar")
+            .arg("-xf")
+            .arg(&archive_path)
+            .arg("--strip-components=3") // Strips the leading directory components
+            .arg("-C")
+            .arg(dir.parent().unwrap_or_else(|| Path::new(".")))
+            .output()
+            .map_err(|e| format!("Failed to execute tar command stripping 3: {}", e))?;
+
+        if !output_3.status.success() {
+
+            return Err(format!(
+                "tar command failed with error: {}",
+                String::from_utf8_lossy(&output_3.stderr)
+            ));
+        }
     }
 
     Ok(())

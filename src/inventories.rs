@@ -18,6 +18,8 @@ pub enum InventoryError {
     JsonParse(#[from] serde_json::Error),
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
+    #[error("The requested resource is blacklisted.")]
+    Blacklisted,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -27,6 +29,7 @@ pub struct Node {
     pub exotic: bool,
     pub processor: Processor,
     pub architecture: Architecture,
+    pub operating_system: Option<OperatingSystem>,
     pub supported_job_types: SupportedJobTypes,
 }
 
@@ -116,6 +119,16 @@ pub struct Processor {
     pub version: StrOrFloat, // Is sometimes another type, like f64, and then panic
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct OperatingSystem {
+    cstate_driver: String,
+    cstate_governor: String,
+    pstate_driver: String,
+    pstate_governor: String,
+    turboboost_enabled: bool
+}
+
+
 #[derive(Deserialize, Debug)]
 struct Cluster {
     uid: String,
@@ -147,23 +160,25 @@ async fn fetch_clusters(
     Ok(clusters)
 }
 
-async fn fetch_nodes(
+pub async fn fetch_nodes(
     client: &Client,
     base_url: &str,
     site_uid: &str,
     cluster_uid: &str,
 ) -> Result<Vec<Node>, InventoryError> {
-    let response = get_api_call(
-        client,
-        &format!(
-            "{}/sites/{}/clusters/{}/nodes",
-            base_url, site_uid, cluster_uid
-        ),
-    )
-    .await
-    .unwrap();
-    let nodes: Vec<Node> = serde_json::from_value(response.get("items").unwrap().clone())?;
-    Ok(nodes)
+    if let Ok(response) = get_api_call(
+            client,
+            &format!(
+                "{}/sites/{}/clusters/{}/nodes",
+                base_url, site_uid, cluster_uid
+            ),
+        )
+        .await {
+            let nodes: Vec<Node> = serde_json::from_value(response.get("items").unwrap().clone())?;
+            Ok(nodes)
+    } else {
+        Err(InventoryError::Blacklisted)
+    }
 }
 
 pub async fn get_api_call(
@@ -180,12 +195,17 @@ pub async fn get_api_call(
         .get(endpoint)
         .basic_auth(username, Some(password))
         .send()
-        .await
-        .unwrap()
-        .json()
         .await;
+   let response_json = match response {
+       Ok(response_body) => {
+        response_body
+            .json()
+            .await
+       },
+       Err(e) => Err(e)
+   };
 
-    match response {
+    match response_json {
         Ok(json) => Ok(json),
         Err(e) => Err(InventoryError::HttpRequest(e)),
     }

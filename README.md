@@ -14,6 +14,7 @@ This repository contains the source code for generating and running benchmarks f
     - The status of each submitted job is tracked until it completes (either successfully or in a failed state).
     - Upon completion, **rsync** is used to retrieve the results files locally. If the retrieval fails, the job’s state is marked as `UnknownState` for manual review.
 6. **Store Results**: Once all filtered nodes have completed their benchmark jobs, the benchmarking process concludes, and all result files are stored in the `/results.d` directory.
+7. **Processe Results**: Once a job reaches a terminal state (likely Terminated or Failed), aggregates all files into proper CSVs. Formats can be found in [the results source code](./src/results), structures provides it.
 
 ## Why it exists.
 
