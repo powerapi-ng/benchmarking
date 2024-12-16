@@ -69,7 +69,9 @@ struct BenchmarkArgs {
     #[arg(long, default_value = CONFIG_FILE)]
     config_file: String,
 
-
+    /// OS version to deploy first on nodes thanks to kadeploy3
+    #[arg(long, default_value = "debian11-nfs")]
+    os_flavor: String
 }
 
 
