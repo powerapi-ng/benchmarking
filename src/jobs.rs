@@ -209,7 +209,7 @@ impl Job {
         base_url: &str,
     ) -> JobResult {
         
-        let mut state: OARState;
+        let state: OARState;
         if self.state == OARState::Processing {
             let endpoint = format!("{}/sites/{}/deployments/{}", base_url, self.site, self.deployment_id.clone().unwrap());
             if let Ok(response) = inventories::get_api_call(&client, &endpoint).await {
