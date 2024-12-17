@@ -29,6 +29,7 @@ const JOBS_FILE: &str = "jobs.yaml";
 const SCRIPTS_DIRECTORY: &str = "scripts.d";
 const RESULTS_DIRECTORY: &str = "results.d";
 const CONFIG_FILE: &str = "config/events_by_vendor.json";
+const DEFAULT_OS_FLAVOR: &str = "debian11-nfs";
 
 #[derive(Parser, Debug)]
 #[command(version, about = "Benchmark tool for PowerAPI Framework")]
@@ -318,6 +319,7 @@ async fn main() -> Result<(), BenchmarkError> {
             &benchmark_args.scripts_directory,
             &benchmark_args.results_directory,
             &events_by_vendor,
+            benchmark_args.os_flavor.clone()
         )
         .await?;
 
