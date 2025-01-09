@@ -67,7 +67,7 @@ pub async fn run_script(session: &Session, host:&str, script_file: &str) -> SshR
     match ssh_command {
         Ok(ssh_output) => {
             if ssh_output.status.success() {
-                info!("Script successsfully started");
+                debug!("Script successsfully started");
             } else {
                error!("Job submission failed: {:?}", ssh_output.stderr);
             } 

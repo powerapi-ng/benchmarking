@@ -12,7 +12,7 @@ use std::fs::File;
 use std::io::Write;
 use thiserror::Error;
 
-const WALLTIME: &str = "4:00:00";
+pub const WALLTIME: &str = "5:00:00";
 const QUEUE_TYPE: &str = "default";
 const CPU_OPS_PER_CORE_LIST: &[u32] = &[25, 250, 2_500, 25_000];
 const NB_ITERATIONS: usize = 10;
