@@ -29,6 +29,7 @@ const JOBS_FILE: &str = "jobs.yaml";
 const SCRIPTS_DIRECTORY: &str = "scripts.d";
 const RESULTS_DIRECTORY: &str = "results.d";
 const CONFIG_FILE: &str = "config/events_by_vendor.json";
+const DEFAULT_OS_FLAVOR: &str = "debian11-nfs";
 
 #[derive(Parser, Debug)]
 #[command(version, about = "Benchmark tool for PowerAPI Framework")]
@@ -69,7 +70,9 @@ struct BenchmarkArgs {
     #[arg(long, default_value = CONFIG_FILE)]
     config_file: String,
 
-
+    /// OS version to deploy first on nodes thanks to kadeploy3
+    #[arg(long, default_value = "debian11-nfs")]
+    os_flavor: String
 }
 
 
@@ -217,10 +220,6 @@ fn init_directories(logs_directory: &str, inventories_directory: &str, scripts_d
             eprintln!("Failed to create directory {}: {}", dir, e);
             e
         })?;
-        debug!(
-            "Successfully created or confirmed existing directory: {}",
-            dir
-        );
     }
     Ok(())
 }
@@ -316,6 +315,7 @@ async fn main() -> Result<(), BenchmarkError> {
             &benchmark_args.scripts_directory,
             &benchmark_args.results_directory,
             &events_by_vendor,
+            benchmark_args.os_flavor.clone()
         )
         .await?;
 
@@ -329,6 +329,10 @@ async fn main() -> Result<(), BenchmarkError> {
         }
     } else {
         info!("Skipping jobs generation and submission as requested");
+    }
+
+    for job in jobs.jobs {
+        results::process_results(&job.results_dir)?;
     }
 
 

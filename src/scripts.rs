@@ -12,7 +12,7 @@ use std::fs::File;
 use std::io::Write;
 use thiserror::Error;
 
-const WALLTIME: &str = "4:00:00";
+pub const WALLTIME: &str = "5:00:00";
 const QUEUE_TYPE: &str = "default";
 const CPU_OPS_PER_CORE_LIST: &[u32] = &[25, 250, 2_500, 25_000];
 const NB_ITERATIONS: usize = 10;
@@ -38,6 +38,8 @@ struct BenchmarkTemplate {
     core_values: Vec<u32>,
     perf_events: PerfEvents,
     cpu_ops_per_core_list: Vec<u32>,
+    os_flavor: String
+
 }
 
 impl BenchmarkTemplate {
@@ -59,6 +61,7 @@ impl BenchmarkTemplate {
         core_values: Vec<u32>,
         perf_events: PerfEvents,
         cpu_ops_per_core_list: &[u32],
+        os_flavor: String,
     ) -> Self {
         Self {
             nb_iterations,
@@ -78,6 +81,7 @@ impl BenchmarkTemplate {
             core_values,
             perf_events,
             cpu_ops_per_core_list: cpu_ops_per_core_list.into(),
+            os_flavor
         }
     }
 }
@@ -105,9 +109,9 @@ pub fn generate_script_file(
         &job.node.processor.version,
     );
     let hwpc_alone_configs =
-        configs::generate_hwpc_configs(&hwpc_events, &job.core_values, "hwpc_alone");
+        configs::generate_hwpc_configs(&hwpc_events, &job.core_values, "hwpc_alone", &job.os_flavor);
     let hwpc_and_perf_configs =
-        configs::generate_hwpc_configs(&hwpc_events, &job.core_values, "hwpc_and_perf");
+        configs::generate_hwpc_configs(&hwpc_events, &job.core_values, "hwpc_and_perf", &job.os_flavor);
     let benchmark = BenchmarkTemplate::new(
         NB_ITERATIONS,
         true,
@@ -126,6 +130,7 @@ pub fn generate_script_file(
         job.core_values.clone(),
         perf_events,
         CPU_OPS_PER_CORE_LIST,
+        job.os_flavor.clone()
     );
     let benchmark = benchmark.render().unwrap();
     file.write_all(benchmark.as_bytes())?;

@@ -1,12 +1,9 @@
-use bytes::BytesMut;
 use log::{debug, error, info};
 use openssh::{KnownHosts, Session, Stdio};
 use openssh_sftp_client::Sftp;
 use regex::Regex;
-use std::path::Path;
 use std::str::{self};
 use thiserror::Error;
-use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 
 #[derive(Error, Debug)]
@@ -60,7 +57,28 @@ pub async fn make_script_executable(session: &Session, script_file: &str) -> Ssh
     Ok(())
 }
 
-pub async fn run_oarsub(session: &Session, script_file: &str) -> Result<Option<u32>, SshError> {
+pub async fn run_script(session: &Session, host:&str, script_file: &str) -> SshResult {
+    let ssh_command = session
+        .command("ssh")
+        .arg(&format!("root@{}", host))
+        .arg(&format!("cd /home/nleblond && (nohup bash {} 1> out1 2> out2 &)", script_file))
+        .output()
+        .await;
+    match ssh_command {
+        Ok(ssh_output) => {
+            if ssh_output.status.success() {
+                debug!("Script successsfully started");
+            } else {
+               error!("Job submission failed: {:?}", ssh_output.stderr);
+            } 
+        },
+        Err(e) => error!("Job command failed: {:?}", e)
+    }
+    Ok(())
+}
+
+
+pub async fn run_oarsub(session: &Session, script_file: &str) -> Result<Option<u64>, SshError> {
     let oarsub_output = session
         .command("oarsub")
         .arg("-S")
@@ -72,7 +90,7 @@ pub async fn run_oarsub(session: &Session, script_file: &str) -> Result<Option<u
         let output_str = str::from_utf8(&oarsub_output.stdout)?;
         let re = Regex::new(r"OAR_JOB_ID=(\d+)").unwrap();
         if let Some(captures) = re.captures(output_str) {
-            let job_id = captures.get(1).unwrap().as_str().parse::<u32>()?;
+            let job_id = captures.get(1).unwrap().as_str().parse::<u64>()?;
             info!("Job successfully submitted with OAR_JOB_ID: {}", job_id);
             Ok(Some(job_id))
         } else {

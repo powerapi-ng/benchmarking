@@ -1,13 +1,10 @@
 use thiserror::Error;
-use log::{debug, info, warn};
-use std::cmp::Ordering;
+use log::{debug, warn};
 use serde::{Serialize, Deserialize};
-use csv::{Reader};
 use std::path::{Path, PathBuf};
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Write};
 use std::fs;
-use std::collections::HashMap;
 
 #[derive(Error, Debug)]
 pub enum ResultError {
@@ -83,14 +80,12 @@ struct PerfRow {
 
 /// Creates an aggregation of perf_<KIND>_<NB_CPU>_<NB_OPS_PER_CPU> into corresponding perf_alone_<NB_CPU>_<NB_OPS_PER_CPU>.csv file
 fn aggregate_perf(raw_perf_results_file: PathBuf) -> io::Result<()> {
-    debug!("Processing perf file '{}'", raw_perf_results_file.display());
 
     let output_path = &format!("{}.csv", raw_perf_results_file.display());
     fs::File::create(output_path)?;
     let mut output_writer = csv::Writer::from_path(output_path)?;
 
     if let Some((nb_core, nb_ops_per_core)) = parse_perf_metadata(raw_perf_results_file.file_name().unwrap().to_str().unwrap()) {
-        debug!("{} metadata : nb_core {} ; nb_ops_per_core {}", raw_perf_results_file.display(), nb_core, nb_ops_per_core);
         let raw_perf_results_file = File::open(raw_perf_results_file)?;
         let reader = BufReader::new(raw_perf_results_file);
         let mut iteration = 1;
@@ -162,16 +157,12 @@ fn parse_perf_metadata(file_name: &str) -> Option<(String, String)> {
 
 fn parse_hwpc_metadata(dir_name: &str) -> Option<(i32, i32, usize)> {
     if let Some(dir_name) = Path::new(dir_name).file_name().and_then(|os_str| os_str.to_str()) {
-        debug!("Filename to parse is : {}", dir_name);
         let parts: Vec<&str> = dir_name.split('_').collect();
         if parts.len() == 5 {
-            debug!("Is hwpc alone");
             if let (Ok(nb_core), Ok(nb_ops_per_core), Ok(iteration)) = (parts[2].parse::<i32>(), parts[3].parse::<i32>(), parts[4].parse::<usize>()) {
-                debug!("{:?}", Some((nb_core, nb_ops_per_core, iteration)));
                 return Some((nb_core, nb_ops_per_core, iteration));
             }
         } else if parts.len() == 6 {
-            debug!("Is hwpc with perf");
             if let (Ok(nb_core), Ok(nb_ops_per_core), Ok(iteration)) = (parts[3].parse::<i32>(), parts[4].parse::<i32>(), parts[5].parse::<usize>()) {
                 return Some((nb_core, nb_ops_per_core, iteration));
             }
@@ -183,9 +174,16 @@ fn parse_hwpc_metadata(dir_name: &str) -> Option<(i32, i32, usize)> {
 }
 
 fn aggregate_hwpc_file(raw_rapl_file: &Path, output_path: &str, nb_core: i32, nb_ops_per_core: i32, iteration: usize) -> io::Result<()> {
-    debug!("Writing to hwpc aggregation file {:?}", output_path);
-    let mut output_writer = csv::Writer::from_path(output_path)?;
-    debug!("Processing hwpc raw file {:?}", raw_rapl_file);
+    let file_exists = std::fs::metadata(output_path).is_ok(); 
+    let file = std::fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .append(true)
+        .open(output_path)?;
+
+    let mut output_writer = csv::WriterBuilder::new().has_headers(!file_exists).from_writer(file);
+
+
     if let Ok(mut reader) = csv::Reader::from_path(raw_rapl_file) {
         let iter  = reader.deserialize::<HwpcRowRaw>();
 
@@ -210,7 +208,6 @@ fn aggregate_hwpc_file(raw_rapl_file: &Path, output_path: &str, nb_core: i32, nb
 fn aggregate_hwpc_subdir(subdir: &fs::DirEntry, output_path: &str) -> io::Result<()> {
 
     let raw_rapl_file = subdir.path().join("rapl.csv");
-    debug!("Processing hwpc aggregation file {:?}", raw_rapl_file);
     if let Some((nb_core, nb_ops_per_core, iteration)) = parse_hwpc_metadata(subdir.file_name().to_str().unwrap()) {
         aggregate_hwpc_file(&raw_rapl_file, output_path, nb_core, nb_ops_per_core, iteration)?;
     } else {
@@ -226,7 +223,6 @@ fn aggregate_hwpc(
     
     let (output_parent, output_basename) = (raw_results_dir_path.parent().unwrap(), raw_results_dir_path.file_name().unwrap());
     let output_path = &format!("{}/{}.csv", output_parent.to_str().unwrap(), output_basename.to_str().unwrap());
-    debug!("Output path : {}", output_path);
 
 
     let mut raw_results_subdirs = Vec::new();
@@ -237,7 +233,6 @@ fn aggregate_hwpc(
         warn!("Could not find subdirectories in {} directory", output_parent.to_str().unwrap());
     }
 
-    debug!("Found {:?} subdirs", raw_results_subdirs);
     assert!(raw_results_subdirs.iter().map(|subdir| aggregate_hwpc_subdir(subdir.as_ref().unwrap(), output_path)).all(|result| result.is_ok()));
 
     Ok(())
@@ -287,11 +282,9 @@ fn filter_perf_files(directory: &str) -> Vec<PathBuf> {
 }
 pub fn process_results(results_directory: &str) -> io::Result<()> {
     let perf_raw_files = filter_perf_files(results_directory);
-    debug!("Found perf files {:?} in {} directory", perf_raw_files, results_directory);
     assert!(perf_raw_files.iter().map(|perf_raw_file| aggregate_perf(perf_raw_file.to_path_buf())).all(|result| result.is_ok()));
 
     let hwpc_raw_dirs = filter_hwpc_dirs(results_directory);
-    debug!("Found hwpc subdirs {:?} in {} directory", hwpc_raw_dirs, results_directory);
     assert!(hwpc_raw_dirs.iter().map(|hwpc_raw_results_dir| aggregate_hwpc(hwpc_raw_results_dir.to_path_buf())).all(|result| result.is_ok()));
 
 

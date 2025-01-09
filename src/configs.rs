@@ -121,11 +121,17 @@ fn build_hwpc_system(hwpc_events: &HwpcEvents) -> HwpcSystem {
     }
 }
 
-fn build_hwpc_config(name: String, system: HwpcSystem) -> HwpcConfig {
+fn build_hwpc_config(name: String, system: HwpcSystem, os_flavor: &str) -> HwpcConfig {
+    let cgroup_basepath;
+    if os_flavor == "ubuntu2404-nfs" {
+        cgroup_basepath = "/sys/fs/cgroup";
+    } else {
+        cgroup_basepath = "/sys/fs/cgroup/perf_event";
+    }
     HwpcConfig {
         name,
         verbose: true,
-        cgroup_basepath: "/sys/fs/cgroup/perf_event".to_owned(),
+        cgroup_basepath: cgroup_basepath.to_owned(),
         frequency: 1000,
         output: HwpcOutput {
             r#type: "csv".to_owned(),
@@ -138,13 +144,14 @@ pub fn generate_hwpc_configs(
     hwpc_events: &HwpcEvents,
     core_values: &[u32],
     prefix: &str,
+    os_flavor: &str,
 ) -> HashMap<u32, HwpcConfig> {
     let hwpc_system = build_hwpc_system(hwpc_events);
     core_values
         .iter()
         .map(|&core_value| {
             let name = format!("{}_sensor_{}", prefix, core_value);
-            (core_value, build_hwpc_config(name, hwpc_system.clone()))
+            (core_value, build_hwpc_config(name, hwpc_system.clone(), os_flavor))
         })
         .collect()
 }

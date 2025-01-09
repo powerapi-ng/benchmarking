@@ -189,10 +189,43 @@ pub async fn get_api_call(
     let username = env::var("G5K_USERNAME").expect("G5K_USERNAME must be set");
     let password = env::var("G5K_PASSWORD").expect("G5K_PASSWORD must be set");
 
-    debug!("Scraping {}", endpoint);
+    debug!("GET request to {}", endpoint);
 
     let response = client
         .get(endpoint)
+        .basic_auth(username, Some(password))
+        .send()
+        .await;
+   let response_json = match response {
+       Ok(response_body) => {
+        response_body
+            .json()
+            .await
+       },
+       Err(e) => Err(e)
+   };
+
+    match response_json {
+        Ok(json) => Ok(json),
+        Err(e) => Err(InventoryError::HttpRequest(e)),
+    }
+}
+
+pub async fn post_api_call(
+    client: &Client,
+    endpoint: &str,
+    data: &serde_json::Value
+) -> Result<HashMap<String, serde_json::Value>, InventoryError> {
+    dotenv::dotenv().ok();
+    let username = env::var("G5K_USERNAME").expect("G5K_USERNAME must be set");
+    let password = env::var("G5K_PASSWORD").expect("G5K_PASSWORD must be set");
+
+    debug!("POST request to {}", endpoint);
+    debug!("with data {:?}", data);
+
+    let response = client
+        .post(endpoint)
+        .json(&data)
         .basic_auth(username, Some(password))
         .send()
         .await;
@@ -245,8 +278,8 @@ pub async fn generate_inventory(inventories_dir: &str) -> Result<(), InventoryEr
                 .await
                 .unwrap();
             for node in nodes.iter_mut() {
+                node.cluster = Some(cluster.uid.clone().to_string());
                 if node.is_to_be_deployed() {
-                    node.cluster = Some(cluster.uid.clone().to_string());
                     let node_specs_file_path = format!("{}/{}.json", cluster_dir, &node.uid);
 
                     if !Path::new(&node_specs_file_path).exists() {
