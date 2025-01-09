@@ -1,17 +1,20 @@
-/logs.d/**/*
+/logs*.d/**/*
 .env
 /Cargo.lock
 /tasks.d/**/*
 /jobs.d/**/*
-/results.d/**/*
-/scripts.d/**/*
-/inventories.d/**/*
+/results*.d/**/*
+/scripts*.d/**/*
+/inventories*.d/**/*
 /backup/**/*
 /test_results/**/*
-/jobs.yaml
+/jobs*.yaml
 /menage.sh
 /resources
-
+/*.tar.*
+/*ipynb* 
+/batches/**
+/.ssh_g5k.pub
 
 # Added by cargo
 
