@@ -10,14 +10,16 @@ use serde_yaml::{self};
 use std::collections::HashMap;
 use std::fmt::{self, Display};
 use std::str::{self};
-use std::time::Duration;
 use std::{env, fs};
 use std::path::{Path, PathBuf};
 use subprocess::{Popen, PopenConfig, Redirection};
 use thiserror::Error;
 use std::process::Command;
+use chrono::{Local, Timelike, Duration};
 
 const MAX_CONCURRENT_JOBS: usize = 30;
+const G5K_DAY_BOTTOM_BOUNDARY: i64 = 9;
+const G5K_DAY_UP_BOUNDARY: i64 = 19;
 
 #[derive(Error, Debug)]
 pub enum JobError {
@@ -168,6 +170,7 @@ impl Job {
     }
 
     pub async fn submit_job(&mut self) -> JobResult {
+        info!("Submitting job on {}", &self.node.uid);
         let session = ssh::ssh_connect(&self.site).await?;
         ssh::create_remote_directory(&session, &self.script_file).await?;
         ssh::sftp_upload(&session, &self.script_file, &self.script_file).await?;
@@ -184,7 +187,7 @@ impl Job {
         } else {
             let client = reqwest::Client::builder().build()?;
             let endpoint = format!("{}/sites/{}/jobs", super::BASE_URL, self.site);
-            let data = serde_json::json!({"properties": format!("host={}",self.node.uid), "resources": "walltime=5", "types": ["deploy"], "command": "sleep 14500"});
+            let data = serde_json::json!({"properties": format!("host={}",self.node.uid), "resources": format!("walltime={}", scripts::WALLTIME), "types": ["deploy"], "command": "sleep 14500"});
             
             if let Ok(response) = inventories::post_api_call(&client, &endpoint, &data).await {
                 debug!("Job has been posted on deploy mode");
@@ -192,7 +195,7 @@ impl Job {
                 let job_id = response.get("uid").unwrap();
                 self.oar_job_id = job_id.as_u64();
             } else {
-                debug!("Job has failed to be posted on deploy mode");
+                error!("Job has failed to be posted on deploy mode");
                 self.state = OARState::Failed;
             }
         }
@@ -240,7 +243,9 @@ impl Job {
             let str_state = response.get("state").unwrap().as_str();
             if str_state == Some("waiting") && self.state == OARState::WaitingToBeDeployed {
                 state = OARState::WaitingToBeDeployed;
-            } else { 
+            } else if str_state == Some("launching") || str_state == Some("to_launch") {
+                state = self.state.clone();
+            } else {
                 state = OARState::try_from(str_state.unwrap()).unwrap();
             }
         }
@@ -271,8 +276,10 @@ impl Job {
 
     pub async fn job_running(&mut self) -> JobResult {
         if self.os_flavor == super::DEFAULT_OS_FLAVOR {
+            info!("Starting script on {}", &self.node.uid);
             return Ok(())
         }
+        info!("Deploying new environement on {}", &self.node.uid);
         // CURL KADEPLOY
         let client = reqwest::Client::builder().build()?;
         let endpoint = format!("{}/sites/{}/deployments", super::BASE_URL, self.site);
@@ -294,7 +301,7 @@ impl Job {
                 self.deployment_id = Some(deployment_id.as_str().unwrap().to_owned());
             }
             Err(e) => {
-                debug!("Job os_flavor has failed to be deployed : {:?}", e);
+                error!("Job os_flavor has failed to be deployed : {:?}", e);
                 self.state = OARState::Failed;
             }
         }
@@ -303,6 +310,7 @@ impl Job {
     }
 
     pub async fn job_os_deployed(&mut self) -> JobResult {
+        info!("Running script on {}", &self.node.uid);
 
         let session = ssh::ssh_connect(&self.site).await?;
         let host = format!("{}.{}.grid5000.fr", self.node.uid, self.site);
@@ -315,18 +323,18 @@ impl Job {
     }
 
     pub async fn job_terminated(&mut self) -> JobResult {
-        let script_dir = Path::new(&self.script_file)
-            .components() // Break the path into components
+        info!("Downloading and processing results from {}", &self.node.uid);
+        let root_results_dir = Path::new(&self.results_dir)
+            .components() 
             .filter_map(|comp| match comp {
                 std::path::Component::Normal(name) => name.to_str(),
                 _ => None,
-            }) // Keep only "normal" components (skip root, prefix, etc.)
+            }) 
             .next();
         if let Err(rsync_result) = rsync_results(
-            script_dir.unwrap(),
             &self.site,
-            self.node.cluster.as_deref().unwrap(),
-            &self.node.uid,
+            &self.results_dir,
+            root_results_dir.unwrap(),
         ) {
             self.state = OARState::UnknownState;
         } else {
@@ -426,6 +434,20 @@ impl Jobs {
                             self.check_unfinished_jobs(&client, super::BASE_URL, jobs_file)
                                 .await?;
                         }
+                        while !within_time_window(scripts::WALLTIME) {
+                            info!(
+                                "Too close of day|night boundaries for {} WALLTIME",
+                                scripts::WALLTIME
+                            );
+                            tokio::time::sleep(std::time::Duration::from_secs(
+                                super::SLEEP_CHECK_TIME_IN_SECONDES,
+                            ))
+                            .await;
+
+                            let client = reqwest::Client::builder().build()?;
+                            self.check_unfinished_jobs(&client, super::BASE_URL, jobs_file)
+                                .await?;
+                        }
                         // Job creation and submission
                         let core_values =
                             configs::generate_core_values(5, node.architecture.nb_cores);
@@ -441,8 +463,8 @@ impl Jobs {
                         job.submit_job().await?;
                         self.jobs.push(job);
                         info!("Job submitted for {} node", node_uid);
-                        info!("Wait 300 ms before another submission");
-                        tokio::time::sleep(Duration::from_millis(300)).await;
+                        debug!("Wait 300 ms before another submission");
+                        tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
 
                         let client = reqwest::Client::builder().build()?;
                         self.check_unfinished_jobs(&client, super::BASE_URL, jobs_file)
@@ -451,7 +473,7 @@ impl Jobs {
                         // Throttling based on the maximum allowed concurrent jobs
                     } else {
                         info!("Job already listed on {} node, skipping", node_uid);
-                        tokio::time::sleep(Duration::from_millis(300)).await;
+                        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
                     }
                 }
             }
@@ -476,12 +498,12 @@ impl Jobs {
         for job in self.jobs.iter_mut().filter(|j| !j.finished()) {
             job.update_job_state(client, base_url).await?;
             if !job.finished() {
-                debug!(
+                info!(
                     "Job {:?} is still in '{}' state.",
                     job.oar_job_id, job.state
                 );
             }
-            tokio::time::sleep(Duration::from_millis(300)).await;
+            tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
         }
 
         self.dump_to_file(file_to_dump_to)?;
@@ -515,8 +537,8 @@ impl Jobs {
     }
 }
 
-pub fn rsync_results(site: &str, cluster: &str, node: &str, results_dir: &str) -> JobResult {
-    let remote_directory = format!("{}:/home/nleblond/results.d", site);
+pub fn rsync_results(site: &str, results_dir: &str, root_results_dir: &str) -> JobResult {
+    let remote_directory = format!("{}:/home/nleblond/{}", site, root_results_dir);
     let mut p = Popen::create(
         &["rsync", "-avzP", &remote_directory, "."],
         PopenConfig {
@@ -527,7 +549,7 @@ pub fn rsync_results(site: &str, cluster: &str, node: &str, results_dir: &str) -
 
     let (out, err) = p.communicate(None)?;
 
-    if let Ok(Some(exit_status)) = p.wait_timeout(Duration::from_secs(120)) {
+    if let Ok(Some(exit_status)) = p.wait_timeout(std::time::Duration::from_secs(120)) {
         if exit_status.success() {
             debug!("Rsync with site {} done.\n{:?}", site, out);
         } else {
@@ -537,7 +559,7 @@ pub fn rsync_results(site: &str, cluster: &str, node: &str, results_dir: &str) -
     } else {
         p.terminate()?;
     }
-    let checksum_file = format!("{}/{}/{}/{}.tar.xz.md5", results_dir, site, cluster, node);
+    let checksum_file = format!("{}.tar.xz.md5", results_dir);
     let mut p = Popen::create(
         &["md5sum", "-c", &checksum_file],
         PopenConfig {
@@ -548,7 +570,7 @@ pub fn rsync_results(site: &str, cluster: &str, node: &str, results_dir: &str) -
 
     let (out, err) = p.communicate(None)?;
 
-    if let Ok(Some(exit_status)) = p.wait_timeout(Duration::from_secs(120)) {
+    if let Ok(Some(exit_status)) = p.wait_timeout(std::time::Duration::from_secs(120)) {
         if exit_status.success() {
             debug!("Checksum success.\n{:?}", out);
         } else {
@@ -609,4 +631,36 @@ fn extract_tar_xz(dir_path: &str) -> Result <(), String> {
     }
 
     Ok(())
+}
+
+fn parse_walltime(walltime: &str) -> Option<Duration> {
+    let parts: Vec<&str> = walltime.split(':').collect();
+    match parts.len() {
+        1 => parts[0].parse::<i64>().ok().map(|h| Duration::hours(h)),
+        2 => {
+            let hours = parts[0].parse::<i64>().ok()?;
+            let minutes = parts[1].parse::<i64>().ok()?;
+            Some(Duration::hours(hours) + Duration::minutes(minutes))
+        }
+        3 => {
+            let hours = parts[0].parse::<i64>().ok()?;
+            let minutes = parts[1].parse::<i64>().ok()?;
+            let seconds = parts[2].parse::<i64>().ok()?;
+            Some(Duration::hours(hours) + Duration::minutes(minutes) + Duration::seconds(seconds))
+        }
+        _ => None,
+    }
+}
+
+fn within_time_window(walltime: &str) -> bool {
+    let now = Local::now();
+    let current_hour = now.hour() as i64;
+    let walltime_duration = parse_walltime(walltime).unwrap_or_else(|| Duration::hours(0));
+    let adjusted_hour = current_hour + walltime_duration.num_hours();
+
+    if (G5K_DAY_BOTTOM_BOUNDARY..G5K_DAY_UP_BOUNDARY).contains(&current_hour) {
+        adjusted_hour < G5K_DAY_UP_BOUNDARY
+    } else {
+        adjusted_hour < G5K_DAY_BOTTOM_BOUNDARY || adjusted_hour >= 24
+    }
 }

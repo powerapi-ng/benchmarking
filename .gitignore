@@ -10,6 +10,7 @@
 /test_results/**/*
 /jobs.yaml
 /menage.sh
+/resources
 
 
 # Added by cargo
