@@ -220,10 +220,6 @@ fn init_directories(logs_directory: &str, inventories_directory: &str, scripts_d
             eprintln!("Failed to create directory {}: {}", dir, e);
             e
         })?;
-        debug!(
-            "Successfully created or confirmed existing directory: {}",
-            dir
-        );
     }
     Ok(())
 }
@@ -333,6 +329,10 @@ async fn main() -> Result<(), BenchmarkError> {
         }
     } else {
         info!("Skipping jobs generation and submission as requested");
+    }
+
+    for job in jobs.jobs {
+        results::process_results(&job.results_dir)?;
     }
 
 
