@@ -1,5 +1,5 @@
 use thiserror::Error;
-use log::{debug, warn};
+use log::{debug, warn, error};
 use serde::{Serialize, Deserialize};
 use std::path::{Path, PathBuf};
 use std::fs::File;
@@ -224,6 +224,12 @@ fn aggregate_hwpc(
     let (output_parent, output_basename) = (raw_results_dir_path.parent().unwrap(), raw_results_dir_path.file_name().unwrap());
     let output_path = &format!("{}/{}.csv", output_parent.to_str().unwrap(), output_basename.to_str().unwrap());
 
+    if Path::new(output_path).exists() {
+        match fs::remove_file(output_path) {
+            Ok(_) => debug!("File '{}' was deleted successfully.", output_path),
+            Err(e) => error!("Failed to delete file '{}': {}", output_path, e),
+        }
+    }
 
     let mut raw_results_subdirs = Vec::new();
 
