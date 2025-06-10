@@ -5,9 +5,7 @@ import seaborn as sns
 import polars as pl
 
 palette = {
-        "hwpc_alone": "#1f77b4",
         "hwpc_with_perf": "#17becf",
-        "perf_alone": "#d62728",
         "perf_with_hwpc": "#ff7f0e",
     }
 

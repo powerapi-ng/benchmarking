@@ -6,24 +6,13 @@ import polars as pl
 
 def correlation_perf_perf_hwpc_hwpc_cv_os(df1, df2, job):
 
-    if job == "alone":
-        df1_perf = df1.sql(f"SELECT * FROM self WHERE job = 'perf_{job}'")
-        df2_perf = df2.sql(f"SELECT * FROM self WHERE job = 'perf_{job}'")
-        df1_hwpc = df1.sql(f"SELECT * FROM self WHERE job = 'hwpc_{job}'")
-        df2_hwpc = df2.sql(f"SELECT * FROM self WHERE job = 'hwpc_{job}'")
-        title = f"Scatterplot of Ubuntu PERF coefficient of variation related to Debian, PKG domain, measurement tools isolated"
-    else:
-        df1_perf = df1.sql(f"SELECT * FROM self WHERE job = 'perf_with_hwpc'")
-        df2_perf = df2.sql(f"SELECT * FROM self WHERE job = 'perf_with_hwpc'")
-        df1_hwpc = df1.sql(f"SELECT * FROM self WHERE job = 'hwpc_with_perf'")
-        df2_hwpc = df2.sql(f"SELECT * FROM self WHERE job = 'hwpc_with_perf'")
-        title = f"Scatterplot of Ubuntu PERF coefficient of variation related to Debian, PKG domain, measurement tools running together"
+    title = f"Scatterplot of Ubuntu PERF coefficient of variation related to Debian, PKG domain, measurement tools running together"
 
     joined_perf = df1_perf.join(
-            other=df2_perf, on=["node", "nb_ops_per_core", "nb_core", "alone"], how="left", validate="1:1", suffix="_debian"
+            other=df2_perf, on=["node", "nb_ops_per_core", "nb_core"], how="left", validate="1:1", suffix="_debian"
             )
     joined_hwpc = df1_hwpc.join(
-            other=df2_hwpc, on=["node", "nb_ops_per_core", "nb_core", "alone"], how="left", validate="1:1", suffix="_debian"
+            other=df2_hwpc, on=["node", "nb_ops_per_core", "nb_core"], how="left", validate="1:1", suffix="_debian"
             )
 
     sns.set_theme(style="whitegrid")
