@@ -1,21 +1,21 @@
 use super::EventsByVendor;
 use crate::configs;
 use crate::inventories::{self, Node};
+use crate::results;
 use crate::scripts;
 use crate::ssh;
-use crate::results;
+use chrono::{Duration, Local, Timelike};
 use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::collections::HashMap;
 use std::fmt::{self, Display};
+use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::str::{self};
 use std::{env, fs};
-use std::path::{Path, PathBuf};
 use subprocess::{Popen, PopenConfig, Redirection};
 use thiserror::Error;
-use std::process::Command;
-use chrono::{Local, Timelike, Duration};
 
 const MAX_CONCURRENT_JOBS: usize = 30;
 const G5K_DAY_BOTTOM_BOUNDARY: i64 = 9;
@@ -61,7 +61,7 @@ pub enum OARState {
     UnknownState,
     Processing,
     Deployed,
-    WaitingToBeDeployed
+    WaitingToBeDeployed,
 }
 
 impl Display for OARState {
@@ -83,12 +83,14 @@ impl OARState {
             OARState::UnknownState => "UnknownState",
             OARState::Processing => "Processing",
             OARState::Deployed => "Deployed",
-            OARState::WaitingToBeDeployed => "WaitingToBeDeployed"
+            OARState::WaitingToBeDeployed => "WaitingToBeDeployed",
         }
     }
 
     fn is_terminal(&self) -> bool {
-        self == &OARState::Terminated || self == &OARState::Failed || self == &OARState::UnknownState
+        self == &OARState::Terminated
+            || self == &OARState::Failed
+            || self == &OARState::UnknownState
     }
 }
 
@@ -123,7 +125,7 @@ pub struct Job {
     pub results_dir: String,
     pub site: String,
     pub deployment_id: Option<String>,
-    pub os_flavor: String
+    pub os_flavor: String,
 }
 
 impl Job {
@@ -147,7 +149,15 @@ impl Job {
         )
     }
 
-    fn new(id: usize, node: Node, core_values: Vec<u32>, site: String, root_scripts_dir: &str, root_results_dir: &str, os_flavor: String) -> Self {
+    fn new(
+        id: usize,
+        node: Node,
+        core_values: Vec<u32>,
+        site: String,
+        root_scripts_dir: &str,
+        root_results_dir: &str,
+        os_flavor: String,
+    ) -> Self {
         let script_file = Job::build_script_file_path(&node, &site, root_scripts_dir);
         let results_dir = Job::build_results_dir_path(&node, &site, root_results_dir);
 
@@ -161,7 +171,7 @@ impl Job {
             results_dir,
             site,
             deployment_id: None,
-            os_flavor
+            os_flavor,
         }
     }
 
@@ -188,7 +198,7 @@ impl Job {
             let client = reqwest::Client::builder().build()?;
             let endpoint = format!("{}/sites/{}/jobs", super::BASE_URL, self.site);
             let data = serde_json::json!({"properties": format!("host={}",self.node.uid), "resources": format!("walltime={}", scripts::WALLTIME), "types": ["deploy"], "command": "sleep 14500"});
-            
+
             if let Ok(response) = inventories::post_api_call(&client, &endpoint, &data).await {
                 debug!("Job has been posted on deploy mode");
                 self.state = OARState::WaitingToBeDeployed;
@@ -200,7 +210,6 @@ impl Job {
             }
         }
 
-        
         session.close().await?;
 
         Ok(())
@@ -211,10 +220,14 @@ impl Job {
         client: &reqwest::Client,
         base_url: &str,
     ) -> JobResult {
-        
         let state: OARState;
         if self.state == OARState::Processing {
-            let endpoint = format!("{}/sites/{}/deployments/{}", base_url, self.site, self.deployment_id.clone().unwrap());
+            let endpoint = format!(
+                "{}/sites/{}/deployments/{}",
+                base_url,
+                self.site,
+                self.deployment_id.clone().unwrap()
+            );
             if let Ok(response) = inventories::get_api_call(&client, &endpoint).await {
                 let str_state = response.get("status").unwrap().as_str().unwrap();
                 if str_state == "terminated" {
@@ -227,7 +240,6 @@ impl Job {
             } else {
                 state = OARState::Failed;
             }
-
         } else {
             let response: HashMap<String, serde_json::Value> = crate::inventories::get_api_call(
                 client,
@@ -249,7 +261,7 @@ impl Job {
                 state = OARState::try_from(str_state.unwrap()).unwrap();
             }
         }
-            
+
         if state != self.state {
             self.state_transition(state).await?;
         }
@@ -277,19 +289,20 @@ impl Job {
     pub async fn job_running(&mut self) -> JobResult {
         if self.os_flavor == super::DEFAULT_OS_FLAVOR {
             info!("Starting script on {}", &self.node.uid);
-            return Ok(())
+            return Ok(());
         }
         info!("Deploying new environement on {}", &self.node.uid);
         // CURL KADEPLOY
         let client = reqwest::Client::builder().build()?;
         let endpoint = format!("{}/sites/{}/deployments", super::BASE_URL, self.site);
         let pub_key_content = fs::read_to_string(".ssh_g5k.pub")
-            .map_err(|e| format!("Failed to read the SSH public key: {}", e)).unwrap();
+            .map_err(|e| format!("Failed to read the SSH public key: {}", e))
+            .unwrap();
         let pub_key_content = pub_key_content.trim();
 
         let data = serde_json::json!({
-            "nodes": [&format!("{}.{}.grid5000.fr",self.node.uid, self.site)], 
-            "environment": self.os_flavor, 
+            "nodes": [&format!("{}.{}.grid5000.fr",self.node.uid, self.site)],
+            "environment": self.os_flavor,
             "key": pub_key_content
         });
 
@@ -314,7 +327,7 @@ impl Job {
 
         let session = ssh::ssh_connect(&self.site).await?;
         let host = format!("{}.{}.grid5000.fr", self.node.uid, self.site);
-        if let Ok(script_result) = ssh::run_script(&session, &host, &self.script_file).await {
+        if let Ok(_script_result) = ssh::run_script(&session, &host, &self.script_file).await {
             self.state = OARState::Running;
         } else {
             self.state = OARState::Failed;
@@ -325,17 +338,15 @@ impl Job {
     pub async fn job_terminated(&mut self) -> JobResult {
         info!("Downloading and processing results from {}", &self.node.uid);
         let root_results_dir = Path::new(&self.results_dir)
-            .components() 
+            .components()
             .filter_map(|comp| match comp {
                 std::path::Component::Normal(name) => name.to_str(),
                 _ => None,
-            }) 
+            })
             .next();
-        if let Err(rsync_result) = rsync_results(
-            &self.site,
-            &self.results_dir,
-            root_results_dir.unwrap(),
-        ) {
+        if let Err(_rsync_result) =
+            rsync_results(&self.site, &self.results_dir, root_results_dir.unwrap())
+        {
             self.state = OARState::UnknownState;
         } else {
             if let Ok(_extracted) = extract_tar_xz(&self.results_dir) {
@@ -348,20 +359,23 @@ impl Job {
     }
 
     pub async fn update_node(&mut self, client: &reqwest::Client, base_url: &str) -> JobResult {
-
         let cluster = self.node.cluster.clone().unwrap();
         if let Ok(nodes) = inventories::fetch_nodes(&client, base_url, &self.site, &cluster).await {
+            let node: Node = nodes
+                .into_iter()
+                .find(|node| node.uid == self.node.uid)
+                .unwrap();
 
-            let node: Node = nodes.into_iter().find(|node| node.uid == self.node.uid).unwrap();
-
-            debug!("Cluster : {} ; Node : {} ; os : {:?}", cluster, node.uid, node.operating_system);
+            debug!(
+                "Cluster : {} ; Node : {} ; os : {:?}",
+                cluster, node.uid, node.operating_system
+            );
             self.node = node;
         } else {
             warn!("Could not gather nodes");
         }
         Ok(())
     }
-
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -414,7 +428,7 @@ impl Jobs {
 
             for cluster_nodes in clusters_nodes.iter() {
                 // Check if this cluster has a node at the current index
-                if let Some((site, cluster, node)) = cluster_nodes.get(index) {
+                if let Some((site, _cluster, node)) = cluster_nodes.get(index) {
                     all_clusters_completed = false;
 
                     let node_uid = node.uid.clone();
@@ -450,9 +464,16 @@ impl Jobs {
                         }
                         // Job creation and submission
                         let core_values =
-                            configs::generate_core_values(5, node.architecture.nb_cores);
-                        let mut job =
-                            Job::new(self.jobs.len(), node.clone(), core_values, site.to_string(), scripts_dir, results_dir, os_flavor.clone());
+                            configs::generate_core_values(node.architecture.nb_cores);
+                        let mut job = Job::new(
+                            self.jobs.len(),
+                            node.clone(),
+                            core_values,
+                            site.to_string(),
+                            scripts_dir,
+                            results_dir,
+                            os_flavor.clone(),
+                        );
                         fs::create_dir_all(
                             std::path::Path::new(&job.script_file).parent().unwrap(),
                         )?;
@@ -554,7 +575,7 @@ pub fn rsync_results(site: &str, results_dir: &str, root_results_dir: &str) -> J
             debug!("Rsync with site {} done.\n{:?}", site, out);
         } else {
             debug!("Rsync with site {} failed.\n{:?} ; {:?}", site, out, err);
-            return Err(JobError::UnknownState("Rsync failed".to_string()))
+            return Err(JobError::UnknownState("Rsync failed".to_string()));
         }
     } else {
         p.terminate()?;
@@ -575,7 +596,7 @@ pub fn rsync_results(site: &str, results_dir: &str, root_results_dir: &str) -> J
             debug!("Checksum success.\n{:?}", out);
         } else {
             debug!("Checksum fail.\n{:?} ; {:?}", out, err);
-            return Err(JobError::UnknownState("Checksum failed".to_string()))
+            return Err(JobError::UnknownState("Checksum failed".to_string()));
         }
     } else {
         p.terminate()?;
@@ -584,7 +605,7 @@ pub fn rsync_results(site: &str, results_dir: &str, root_results_dir: &str) -> J
     Ok(())
 }
 
-fn extract_tar_xz(dir_path: &str) -> Result <(), String> {
+fn extract_tar_xz(dir_path: &str) -> Result<(), String> {
     let dir = Path::new(dir_path);
 
     let tar_xz_name = match dir.file_name() {
@@ -596,7 +617,10 @@ fn extract_tar_xz(dir_path: &str) -> Result <(), String> {
         None => return Err("Failed to compute archive name from directory path.".to_string()),
     };
 
-    let archive_path = dir.parent().unwrap_or_else(|| Path::new(".")).join(&tar_xz_name);
+    let archive_path = dir
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .join(&tar_xz_name);
 
     if !archive_path.exists() {
         return Err(format!("Archive not found: {:?}", archive_path));
@@ -609,7 +633,8 @@ fn extract_tar_xz(dir_path: &str) -> Result <(), String> {
         .arg("-C")
         .arg(dir.parent().unwrap_or_else(|| Path::new(".")))
         .output()
-        .map_err(|e| format!("Failed to execute tar command stripping 5: {}", e)).unwrap();
+        .map_err(|e| format!("Failed to execute tar command stripping 5: {}", e))
+        .unwrap();
 
     if !output_5.status.success() {
         let output_3 = Command::new("tar")
@@ -622,7 +647,6 @@ fn extract_tar_xz(dir_path: &str) -> Result <(), String> {
             .map_err(|e| format!("Failed to execute tar command stripping 3: {}", e))?;
 
         if !output_3.status.success() {
-
             return Err(format!(
                 "tar command failed with error: {}",
                 String::from_utf8_lossy(&output_3.stderr)
@@ -656,11 +680,18 @@ fn within_time_window(walltime: &str) -> bool {
     let now = Local::now();
     let current_hour = now.hour() as i64;
     let walltime_duration = parse_walltime(walltime).unwrap_or_else(|| Duration::hours(0));
-    let adjusted_hour = current_hour + walltime_duration.num_hours();
-
-    if (G5K_DAY_BOTTOM_BOUNDARY..G5K_DAY_UP_BOUNDARY).contains(&current_hour) {
-        adjusted_hour < G5K_DAY_UP_BOUNDARY
-    } else {
-        adjusted_hour < G5K_DAY_BOTTOM_BOUNDARY || adjusted_hour >= 24
+    let adjusted_hour = (current_hour + walltime_duration.num_hours()) % 24;
+    if adjusted_hour > G5K_DAY_BOTTOM_BOUNDARY
+        && adjusted_hour < G5K_DAY_UP_BOUNDARY
+        && current_hour >= G5K_DAY_BOTTOM_BOUNDARY
+    {
+        return true;
     }
+    if adjusted_hour > G5K_DAY_UP_BOUNDARY && current_hour > G5K_DAY_UP_BOUNDARY {
+        return true;
+    }
+    if adjusted_hour < G5K_DAY_BOTTOM_BOUNDARY && current_hour < G5K_DAY_BOTTOM_BOUNDARY {
+        return true;
+    }
+    return false;
 }

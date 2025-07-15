@@ -125,9 +125,8 @@ pub struct OperatingSystem {
     cstate_governor: String,
     pstate_driver: String,
     pstate_governor: String,
-    turboboost_enabled: bool
+    turboboost_enabled: bool,
 }
-
 
 #[derive(Deserialize, Debug)]
 struct Cluster {
@@ -167,15 +166,16 @@ pub async fn fetch_nodes(
     cluster_uid: &str,
 ) -> Result<Vec<Node>, InventoryError> {
     if let Ok(response) = get_api_call(
-            client,
-            &format!(
-                "{}/sites/{}/clusters/{}/nodes",
-                base_url, site_uid, cluster_uid
-            ),
-        )
-        .await {
-            let nodes: Vec<Node> = serde_json::from_value(response.get("items").unwrap().clone())?;
-            Ok(nodes)
+        client,
+        &format!(
+            "{}/sites/{}/clusters/{}/nodes",
+            base_url, site_uid, cluster_uid
+        ),
+    )
+    .await
+    {
+        let nodes: Vec<Node> = serde_json::from_value(response.get("items").unwrap().clone())?;
+        Ok(nodes)
     } else {
         Err(InventoryError::Blacklisted)
     }
@@ -196,14 +196,10 @@ pub async fn get_api_call(
         .basic_auth(username, Some(password))
         .send()
         .await;
-   let response_json = match response {
-       Ok(response_body) => {
-        response_body
-            .json()
-            .await
-       },
-       Err(e) => Err(e)
-   };
+    let response_json = match response {
+        Ok(response_body) => response_body.json().await,
+        Err(e) => Err(e),
+    };
 
     match response_json {
         Ok(json) => Ok(json),
@@ -214,7 +210,7 @@ pub async fn get_api_call(
 pub async fn post_api_call(
     client: &Client,
     endpoint: &str,
-    data: &serde_json::Value
+    data: &serde_json::Value,
 ) -> Result<HashMap<String, serde_json::Value>, InventoryError> {
     dotenv::dotenv().ok();
     let username = env::var("G5K_USERNAME").expect("G5K_USERNAME must be set");
@@ -229,14 +225,10 @@ pub async fn post_api_call(
         .basic_auth(username, Some(password))
         .send()
         .await;
-   let response_json = match response {
-       Ok(response_body) => {
-        response_body
-            .json()
-            .await
-       },
-       Err(e) => Err(e)
-   };
+    let response_json = match response {
+        Ok(response_body) => response_body.json().await,
+        Err(e) => Err(e),
+    };
 
     match response_json {
         Ok(json) => Ok(json),
