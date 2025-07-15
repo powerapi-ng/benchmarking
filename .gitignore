@@ -9,3 +9,38 @@
 # Added by cargo
 
 /target
+/data/
+
+
+
+## Python
+# Byte-compiled / optimized / DLL files
+analysis/__pycache__/
+analysis/*.py[codz]
+analysis/*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+analysis/.Python
+analysis/build/
+analysis/develop-eggs/
+analysis/dist/
+analysis/downloads/
+analysis/eggs/
+analysis/.eggs/
+analysis/lib/
+analysis/bin/
+analysis/lib64
+analysis/share
+analysis/parts/
+analysis/sdist/
+analysis/var/
+analysis/wheels/
+analysis/share/python-wheels/
+analysis/*.egg-info/
+analysis/.installed.cfg
+analysis/*.egg
+analysis/MANIFEST
+
