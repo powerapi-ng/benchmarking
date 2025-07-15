@@ -44,3 +44,8 @@ analysis/.installed.cfg
 analysis/*.egg
 analysis/MANIFEST
 
+.idea/
+jobs.yaml
+results*.d/
+scripts*.d/
+inventories*.d/
