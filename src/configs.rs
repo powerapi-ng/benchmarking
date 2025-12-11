@@ -1,5 +1,4 @@
 use crate::HwpcEvents;
-use rand::Rng;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt;
@@ -88,21 +87,19 @@ impl fmt::Display for HwpcSystemCore {
     }
 }
 
-pub fn generate_core_values(n: usize, max: u32) -> Vec<u32> {
-    let mut rng = rand::thread_rng();
-    let mut values = Vec::new();
+pub fn generate_core_values(max: u32) -> Vec<u32> {
+    let values = vec!(max*2);
 
-    for _ in 0..n {
-        let mut value = 1 + rng.gen_range(1..=max);
-        while value.is_power_of_two() {
-            value = 1 + rng.gen_range(1..=max);
-        }
-        values.push(value);
-    }
-
-    values.sort_unstable();
-    values.push(max);
-    values.dedup();
+    //    for _ in 0..n {
+    //        let mut value = 1 + rng.gen_range(1..=max);
+    //        while value.is_power_of_two() {
+    //            value = 1 + rng.gen_range(1..=max);
+    //        }
+    //        values.push(value);
+    //    }
+    //
+    //    values.sort_unstable();
+    //    values.dedup();
     values
 }
 
@@ -151,7 +148,10 @@ pub fn generate_hwpc_configs(
         .iter()
         .map(|&core_value| {
             let name = format!("{}_sensor_{}", prefix, core_value);
-            (core_value, build_hwpc_config(name, hwpc_system.clone(), os_flavor))
+            (
+                core_value,
+                build_hwpc_config(name, hwpc_system.clone(), os_flavor),
+            )
         })
         .collect()
 }
@@ -164,7 +164,7 @@ mod tests {
 
     #[test]
     fn test_generate_core_values() {
-        let values = generate_core_values(NB_VALUE, MAX_VALUE);
+        let values = generate_core_values(MAX_VALUE);
         assert!(values.len() > 0);
         assert!(values
             .iter()
@@ -173,7 +173,7 @@ mod tests {
 
     #[test]
     fn test_max_is_present() {
-        let values = generate_core_values(NB_VALUE, MAX_VALUE);
+        let values = generate_core_values(MAX_VALUE);
         assert!(values.contains(&MAX_VALUE));
     }
 }

@@ -12,19 +12,31 @@ use std::fs::File;
 use std::io::Write;
 use thiserror::Error;
 
-pub const WALLTIME: &str = "5:00:00";
+pub const WALLTIME: &str = "4:30:00";
 const QUEUE_TYPE: &str = "default";
-const CPU_OPS_PER_CORE_LIST: &[u32] = &[25, 250, 2_500, 25_000];
-const NB_ITERATIONS: usize = 10;
+const CPU_OPS_PER_CORE_LIST: &[u32] = &[25_000];
+const NB_ITERATIONS: usize = 12;
+const NB_ITERATIONS_FREQUENCIES: usize = 6;
 const HWPC_HOME_DIRECTORY: &str = "/app";
 
 #[derive(Template)]
 #[template(path = "benchmark.sh", escape = "none")]
 struct BenchmarkTemplate {
     nb_iterations: usize,
+    nb_iterations_frequencies: usize,
+    frequencies_benchmark: bool,
+    target_frequencies: Vec<u32>,
     perf_alone: bool,
     hwpc_alone: bool,
+    codecarbon_alone: bool,
+    alumet_alone: bool,
+    scaphandre_alone: bool,
+    vjoule_alone: bool,
     hwpc_and_perf: bool,
+    codecarbon_and_perf: bool,
+    alumet_and_perf: bool,
+    scaphandre_and_perf: bool,
+    vjoule_and_perf: bool,
     docker_hub_username: String,
     docker_hub_token: String,
     hwpc_alone_configs: HashMap<u32, HwpcConfig>,
@@ -38,16 +50,26 @@ struct BenchmarkTemplate {
     core_values: Vec<u32>,
     perf_events: PerfEvents,
     cpu_ops_per_core_list: Vec<u32>,
-    os_flavor: String
-
+    os_flavor: String,
 }
 
 impl BenchmarkTemplate {
     fn new(
         nb_iterations: usize,
+        nb_iterations_frequencies: usize,
+        frequencies_benchmark: bool,
+        target_frequencies: Vec<u32>,
         perf_alone: bool,
         hwpc_alone: bool,
+        codecarbon_alone: bool,
+        alumet_alone: bool,
+        scaphandre_alone: bool,
+        vjoule_alone: bool,
         hwpc_and_perf: bool,
+        codecarbon_and_perf: bool,
+        alumet_and_perf: bool,
+        scaphandre_and_perf: bool,
+        vjoule_and_perf: bool,
         docker_hub_username: String,
         docker_hub_token: String,
         hwpc_alone_configs: HashMap<u32, HwpcConfig>,
@@ -65,9 +87,20 @@ impl BenchmarkTemplate {
     ) -> Self {
         Self {
             nb_iterations,
+            nb_iterations_frequencies,
+            frequencies_benchmark,
+            target_frequencies,
             perf_alone,
             hwpc_alone,
+            codecarbon_alone,
+            alumet_alone,
+            scaphandre_alone,
+            vjoule_alone,
             hwpc_and_perf,
+            codecarbon_and_perf,
+            alumet_and_perf,
+            scaphandre_and_perf,
+            vjoule_and_perf,
             docker_hub_username,
             docker_hub_token,
             hwpc_alone_configs,
@@ -81,7 +114,7 @@ impl BenchmarkTemplate {
             core_values,
             perf_events,
             cpu_ops_per_core_list: cpu_ops_per_core_list.into(),
-            os_flavor
+            os_flavor,
         }
     }
 }
@@ -108,12 +141,31 @@ pub fn generate_script_file(
         &job.node.processor.microarchitecture,
         &job.node.processor.version,
     );
-    let hwpc_alone_configs =
-        configs::generate_hwpc_configs(&hwpc_events, &job.core_values, "hwpc_alone", &job.os_flavor);
-    let hwpc_and_perf_configs =
-        configs::generate_hwpc_configs(&hwpc_events, &job.core_values, "hwpc_and_perf", &job.os_flavor);
+    let hwpc_alone_configs = configs::generate_hwpc_configs(
+        &hwpc_events,
+        &job.core_values,
+        "hwpc_alone",
+        &job.os_flavor,
+    );
+    let hwpc_and_perf_configs = configs::generate_hwpc_configs(
+        &hwpc_events,
+        &job.core_values,
+        "hwpc_and_perf",
+        &job.os_flavor,
+    );
     let benchmark = BenchmarkTemplate::new(
         NB_ITERATIONS,
+        NB_ITERATIONS_FREQUENCIES,
+        true,
+        vec![1_000, 100, 10, 1],
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
         true,
         true,
         true,
@@ -130,7 +182,7 @@ pub fn generate_script_file(
         job.core_values.clone(),
         perf_events,
         CPU_OPS_PER_CORE_LIST,
-        job.os_flavor.clone()
+        job.os_flavor.clone(),
     );
     let benchmark = benchmark.render().unwrap();
     file.write_all(benchmark.as_bytes())?;

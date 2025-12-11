@@ -3,8 +3,7 @@ use openssh::{KnownHosts, Session, Stdio};
 use openssh_sftp_client::Sftp;
 use regex::Regex;
 use std::str::{self};
-use thiserror::Error;
-use tokio::io::AsyncWriteExt;
+use thiserror::Error; 
 
 #[derive(Error, Debug)]
 pub enum SshError {
@@ -57,11 +56,14 @@ pub async fn make_script_executable(session: &Session, script_file: &str) -> Ssh
     Ok(())
 }
 
-pub async fn run_script(session: &Session, host:&str, script_file: &str) -> SshResult {
+pub async fn run_script(session: &Session, host: &str, script_file: &str) -> SshResult {
     let ssh_command = session
         .command("ssh")
         .arg(&format!("root@{}", host))
-        .arg(&format!("cd /home/nleblond && (nohup bash {} 1> out1 2> out2 &)", script_file))
+        .arg(&format!(
+            "cd /home/nleblond && (nohup bash {} 1> out1 2> out2 &)",
+            script_file
+        ))
         .output()
         .await;
     match ssh_command {
@@ -69,14 +71,13 @@ pub async fn run_script(session: &Session, host:&str, script_file: &str) -> SshR
             if ssh_output.status.success() {
                 debug!("Script successsfully started");
             } else {
-               error!("Job submission failed: {:?}", ssh_output.stderr);
-            } 
-        },
-        Err(e) => error!("Job command failed: {:?}", e)
+                error!("Job submission failed: {:?}", ssh_output.stderr);
+            }
+        }
+        Err(e) => error!("Job command failed: {:?}", e),
     }
     Ok(())
 }
-
 
 pub async fn run_oarsub(session: &Session, script_file: &str) -> Result<Option<u64>, SshError> {
     let oarsub_output = session

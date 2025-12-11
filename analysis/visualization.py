@@ -5,11 +5,10 @@ import seaborn as sns
 import polars as pl
 
 palette = {
-        "hwpc_alone": "#1f77b4",
-        "hwpc_with_perf": "#17becf",
-        "perf_alone": "#d62728",
-        "perf_with_hwpc": "#ff7f0e",
-    }
+    "hwpc_with_perf": "#17becf",
+    "perf_with_hwpc": "#ff7f0e",
+}
+
 
 def plot_violinplot(dfs, x, y, hue, save=True, show=True):
     fig, axs = plt.subplots(nrows=1, ncols=2, sharey=True)
@@ -27,26 +26,29 @@ def plot_violinplot(dfs, x, y, hue, save=True, show=True):
 
 def plot_boxplot(df, x, y, hue, prefix, save=True, show=True):
     plt.figure(figsize=(12, 6))
-    plt.ylim(0, .1)
+    plt.ylim(0, 0.1)
     df = df.sql("SELECT * FROM self WHERE nb_ops_per_core > 25")
     sns.boxplot(data=df, x=x, y=y, hue=hue)
-   # sns.boxplot(
-   #     data=df,
-   #     x=x,
-   #     y=y,
-   #     hue=hue,
-   # )
+    # sns.boxplot(
+    #     data=df,
+    #     x=x,
+    #     y=y,
+    #     hue=hue,
+    # )
 
     title = f"{prefix} - HWPC Coefficient of Variation\n{y} for {x} by {hue}"
-    safe_title = re.sub(r'[^\w\s-]', '', title)  # Remove invalid characters
+    safe_title = re.sub(r"[^\w\s-]", "", title)  # Remove invalid characters
     safe_title = safe_title.replace(" ", "_")
     safe_title = safe_title.replace("\n", "_")
     if save:
-        plt.savefig(f'{safe_title}.png', dpi=600)
+        plt.savefig(f"{safe_title}.png", dpi=600)
     if show:
         plt.show()
 
-def plot_facet_grid_nb_ops_per_core_versions_domain_cv(df, domain, os, save=True, show=True):
+
+def plot_facet_grid_nb_ops_per_core_versions_domain_cv(
+    df, domain, os, save=True, show=True
+):
     df = df.to_pandas()
     df = df.sort_values(by=["processor_vendor", "processor_generation"])
     g = sns.FacetGrid(
@@ -73,27 +75,30 @@ def plot_facet_grid_nb_ops_per_core_versions_domain_cv(df, domain, os, save=True
     g.set_axis_labels("Processor Detail", f"{domain} coefficient of variation")
     g.set_titles(col_template="Ops per Core: {col_name}")
     g.add_legend(title="Job")
-    g.legend.set_bbox_to_anchor((0.85, 0.75))  # (x, y) coordinates relative to the first subplot
+    g.legend.set_bbox_to_anchor(
+        (0.85, 0.75)
+    )  # (x, y) coordinates relative to the first subplot
     g.legend.set_frame_on(True)
     # Rotate x-axis labels for better readability
     for ax in g.axes.flat:
         ax.tick_params(axis="x", rotation=90)
     title = f"Boxplots of {domain} measurements CV by nb_ops_per_core and processor versions - {os}"
-    safe_title = re.sub(r'[^\w\s-]', '', title)  # Remove invalid characters
+    safe_title = re.sub(r"[^\w\s-]", "", title)  # Remove invalid characters
     safe_title = safe_title.replace(" ", "_")
     safe_title = safe_title.replace("\n", "_")
     plt.suptitle(title)
     plt.tight_layout()
     if save:
-        plt.savefig(f'{safe_title}.png', dpi=600)
+        plt.savefig(f"{safe_title}.png", dpi=600)
     if show:
         plt.show()
 
+
 def plot_boxplots(dfs, x, y, hue, prefix, save=True, show=True):
-    fig, axs = plt.subplots(nrows=1, ncols=2,figsize=(16,7) ,sharey=True)
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(16, 7), sharey=True)
     dfs[0] = dfs[0].sort(x)
     dfs[1] = dfs[1].sort(x)
-    
+
     plt.ylim(0, 1)
 
     sns.boxplot(
@@ -121,15 +126,16 @@ def plot_boxplots(dfs, x, y, hue, prefix, save=True, show=True):
     axs[1].set_title("Ubuntu2404nfs - Kernel 6.8 - HWPC Coefficient of Variation")
     axs[1].set_xticklabels(axs[1].get_xticklabels(), rotation=90, ha="right")
     title = f"{prefix}\n{y} for {x} by {hue}"
-    safe_title = re.sub(r'[^\w\s-]', '', title)  # Remove invalid characters
+    safe_title = re.sub(r"[^\w\s-]", "", title)  # Remove invalid characters
     safe_title = safe_title.replace(" ", "_")
     safe_title = safe_title.replace("\n", "_")
     plt.title(title)
     plt.tight_layout()
     if save:
-        plt.savefig(f'{safe_title}.png', dpi=600)
+        plt.savefig(f"{safe_title}.png", dpi=600)
     if show:
         plt.show()
+
 
 def plot_os_degradation_nb_ops(joined_df, domain, tool, save=True, show=True):
     joined_df = joined_df.with_columns(
@@ -149,7 +155,6 @@ def plot_os_degradation_nb_ops(joined_df, domain, tool, save=True, show=True):
             ).alias(f"{domain}_ratio")
         )
     )
-
 
     aggregated = joined_df.group_by(["processor_detail", "nb_ops_per_core"]).agg(
         pl.col(f"{domain}_ratio").median().alias(f"{domain}_median_ratio"),
@@ -178,7 +183,7 @@ def plot_os_degradation_nb_ops(joined_df, domain, tool, save=True, show=True):
         vmax=2,
     )
     title = f"Heatmap of median ratio of {domain} measurements CV (ubuntu/debian) by vendor\nfor {tool} tool"
-    safe_title = re.sub(r'[^\w\s-]', '', title)  # Remove invalid characters
+    safe_title = re.sub(r"[^\w\s-]", "", title)  # Remove invalid characters
     safe_title = safe_title.replace(" ", "_")
     safe_title = safe_title.replace("\n", "_")
     plt.title(title)
@@ -186,7 +191,7 @@ def plot_os_degradation_nb_ops(joined_df, domain, tool, save=True, show=True):
     plt.ylabel("Number of operations per core")
     plt.tight_layout()
     if save:
-        plt.savefig(f'{safe_title}.png', dpi=600)
+        plt.savefig(f"{safe_title}.png", dpi=600)
     if show:
         plt.show()
 
@@ -212,15 +217,15 @@ def plot_os_degradation_nb_ops(joined_df, domain, tool, save=True, show=True):
     plt.xlabel("Processor Details")
     plt.xticks(rotation=90, ha="right")
     plt.ylabel("Number of Operations Per Core")
-    
+
     title = f"Heatmap of median diff for {domain} measurements CV (ubuntu - debian) by vendor\nfor {tool} tool"
-    safe_title = re.sub(r'[^\w\s-]', '', title)  # Remove invalid characters
+    safe_title = re.sub(r"[^\w\s-]", "", title)  # Remove invalid characters
     safe_title = safe_title.replace(" ", "_")
     safe_title = safe_title.replace("\n", "_")
     plt.title(title)
     plt.tight_layout()
     if save:
-        plt.savefig(f'{safe_title}.png', dpi=600)
+        plt.savefig(f"{safe_title}.png", dpi=600)
     if show:
         plt.show()
 
@@ -244,7 +249,9 @@ def plot_os_degradation_percent_used(joined_df, domain, save=True, show=True):
         )
     )
 
-    aggregated = joined_df.group_by(["processor_detail", "percent_cores_used_category"]).agg(
+    aggregated = joined_df.group_by(
+        ["processor_detail", "percent_cores_used_category"]
+    ).agg(
         pl.col(f"{domain}_ratio").median().alias(f"{domain}_median_ratio"),
         pl.col(f"{domain}_diff").median().alias(f"{domain}_median_diff"),
     )
@@ -269,13 +276,13 @@ def plot_os_degradation_percent_used(joined_df, domain, save=True, show=True):
         vmax=2,
     )
     title = f"Heatmap of median ratio of HWPC {domain} measurements CV (ubuntu/debian) by vendor"
-    safe_title = re.sub(r'[^\w\s-]', '', title)  # Remove invalid characters
+    safe_title = re.sub(r"[^\w\s-]", "", title)  # Remove invalid characters
     safe_title = safe_title.replace(" ", "_")
     safe_title = safe_title.replace("\n", "_")
     plt.title(title)
     plt.tight_layout()
     if save:
-        plt.savefig(f'{safe_title}.png', dpi=600)
+        plt.savefig(f"{safe_title}.png", dpi=600)
     if show:
         plt.show()
 
@@ -303,13 +310,12 @@ def plot_os_degradation_percent_used(joined_df, domain, save=True, show=True):
     plt.ylabel("Percent core used")
 
     title = f"Heatmap of median diff for HWPC {domain} measurements CV (ubuntu - debian) by vendor"
-    safe_title = re.sub(r'[^\w\s-]', '', title)  # Remove invalid characters
+    safe_title = re.sub(r"[^\w\s-]", "", title)  # Remove invalid characters
     safe_title = safe_title.replace(" ", "_")
     safe_title = safe_title.replace("\n", "_")
     plt.title(title)
     plt.tight_layout()
     if save:
-        plt.savefig(f'{safe_title}.png', dpi=600)
+        plt.savefig(f"{safe_title}.png", dpi=600)
     if show:
         plt.show()
-

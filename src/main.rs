@@ -21,7 +21,7 @@ use std::{fmt, fs, time::Duration};
 use thiserror::Error;
 
 const SUPPORTED_PROCESSOR_VENDOR: &[&str; 3] = &["Intel", "AMD", "Cavium"];
-const SLEEP_CHECK_TIME_IN_SECONDES: u64 = 900;
+const SLEEP_CHECK_TIME_IN_SECONDES: u64 = 150;
 const BASE_URL: &str = "https://api.grid5000.fr/stable"; // URL de base de l'API
 const LOGS_DIRECTORY: &str = "logs.d";
 const INVENTORIES_DIRECTORY: &str = "inventories.d";
@@ -72,9 +72,8 @@ struct BenchmarkArgs {
 
     /// OS version to deploy first on nodes thanks to kadeploy3
     #[arg(long, default_value = "debian11-nfs")]
-    os_flavor: String
+    os_flavor: String,
 }
-
 
 type BenchmarkResult = Result<(), BenchmarkError>;
 #[derive(Error, Debug)]
@@ -206,7 +205,12 @@ impl EventsByVendor {
 }
 
 // Creates all directories if not already existing
-fn init_directories(logs_directory: &str, inventories_directory: &str, scripts_directory: &str, results_directory: &str) -> BenchmarkResult {
+fn init_directories(
+    logs_directory: &str,
+    inventories_directory: &str,
+    scripts_directory: &str,
+    results_directory: &str,
+) -> BenchmarkResult {
     let directories = [
         logs_directory,
         inventories_directory,
@@ -268,19 +272,17 @@ async fn main() -> Result<(), BenchmarkError> {
     info!("Starting Benchmarks!");
     debug!("LOG_LEVEL is : {:?}", &log_level);
 
-
-
     init_directories(
         &benchmark_args.logs_directory,
         &benchmark_args.inventories_directory,
         &benchmark_args.scripts_directory,
         &benchmark_args.results_directory,
-        )?;
+    )?;
 
     let events_by_vendor = load_events_config(&benchmark_args.config_file)?;
     let mut jobs: Jobs = load_or_init_jobs(&benchmark_args.jobs_file)?;
-    
-    if ! benchmark_args.inventory_skip {
+
+    if !benchmark_args.inventory_skip {
         info!("Processing inventory step");
         inventories::generate_inventory(&benchmark_args.inventories_directory).await?;
         /*
@@ -295,12 +297,11 @@ async fn main() -> Result<(), BenchmarkError> {
         }
         jobs.dump_to_file(JOBS_FILE)?;
         */
-
     } else {
         info!("Skipping inventory scrapping as requested");
     }
 
-    if ! benchmark_args.jobs_skip {
+    if !benchmark_args.jobs_skip {
         info!("Processing jobs step");
         // If we loaded existing jobs, check their status
         if jobs.jobs.len() != 0 {
@@ -315,7 +316,7 @@ async fn main() -> Result<(), BenchmarkError> {
             &benchmark_args.scripts_directory,
             &benchmark_args.results_directory,
             &events_by_vendor,
-            benchmark_args.os_flavor.clone()
+            benchmark_args.os_flavor.clone(),
         )
         .await?;
 
@@ -334,7 +335,6 @@ async fn main() -> Result<(), BenchmarkError> {
     for job in jobs.jobs {
         results::process_results(&job.results_dir)?;
     }
-
 
     Ok(())
 }
