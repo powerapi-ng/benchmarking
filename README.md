@@ -1,8 +1,8 @@
-# PowerAPI Framework Benchmarks
+# Powermeter Software Benchmarks Framework 
 
 ## What It Does
 
-This repository contains the source code for generating and running benchmarks for the **PowerAPI Framework**. These benchmarks are designed to adapt to the configuration and architecture of underlying nodes in the **Grid5000** infrastructure. 
+This repository contains the source code for generating and running benchmarks for several **power-meter softwares**. These benchmarks are designed to adapt to the configuration and architecture of underlying nodes in the **Grid5000** infrastructure. 
 
 ### Key Processes:
 
@@ -18,11 +18,7 @@ This repository contains the source code for generating and running benchmarks f
 
 ## Why it exists.
 
-This benchmarks aim at measuring the variability introduced by the PowerAPI framework over the RAPL interface.
-
-## Who it’s for.
-Currently, this work remains internal for PowerAPI staff to study the variability of the PowerAPI framework along its development.
-
+This benchmarks aim at comparing different power-meter softwares on several selected criteria and serve as guideling for experimenters to choose the most suitable tool.
 
 ## Installation
 
