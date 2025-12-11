@@ -72,7 +72,7 @@ def vendor_generation_map_1():
             "architecture": "Broadwell-E",
             "vendor": "Intel",
             "generation": 6,
-            "launch_date": "Q1 2016",
+            "launch_date": "2016 Q1",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -80,7 +80,7 @@ def vendor_generation_map_1():
             "architecture": "Broadwell-E",
             "vendor": "Intel",
             "generation": 6,
-            "launch_date": "Q1 2016",
+            "launch_date": "2016 Q1",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -88,7 +88,7 @@ def vendor_generation_map_1():
             "architecture": "Broadwell-E",
             "vendor": "Intel",
             "generation": 6,
-            "launch_date": "Q1 2016",
+            "launch_date": "2016 Q1",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -96,7 +96,7 @@ def vendor_generation_map_1():
             "architecture": "Haswell-E",
             "vendor": "Intel",
             "generation": 5,
-            "launch_date": "Q3 2014",
+            "launch_date": "2014 Q3",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -104,7 +104,7 @@ def vendor_generation_map_1():
             "architecture": "Cascade Lake-SP",
             "vendor": "Intel",
             "generation": 10,
-            "launch_date": "Q2 2019",
+            "launch_date": "2019 Q2",
             "numa_nodes_number": "1",
             "numa_nodes_first_cpus": [0],
         },
@@ -112,7 +112,7 @@ def vendor_generation_map_1():
             "architecture": "Cascade Lake-SP",
             "vendor": "Intel",
             "generation": 10,
-            "launch_date": "Q2 2019",
+            "launch_date": "2019 Q2",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -120,7 +120,7 @@ def vendor_generation_map_1():
             "architecture": "Coffee Lake",
             "vendor": "Intel",
             "generation": 9,
-            "launch_date": "Q2 2019",
+            "launch_date": "2019 Q2",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -128,7 +128,7 @@ def vendor_generation_map_1():
             "architecture": "Ice Lake-SP",
             "vendor": "Intel",
             "generation": 10,
-            "launch_date": "Q2 2021",
+            "launch_date": "2021 Q2",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -136,7 +136,7 @@ def vendor_generation_map_1():
             "architecture": "Ice Lake-SP",
             "vendor": "Intel",
             "generation": 10,
-            "launch_date": "Q2 2021",
+            "launch_date": "2021 Q2",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -144,7 +144,7 @@ def vendor_generation_map_1():
             "architecture": "Skylake-SP",
             "vendor": "Intel",
             "generation": 6,
-            "launch_date": "Q3 2017",
+            "launch_date": "2017 Q3",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -152,7 +152,7 @@ def vendor_generation_map_1():
             "architecture": "Skylake-SP",
             "vendor": "Intel",
             "generation": 6,
-            "launch_date": "Q3 2017",
+            "launch_date": "2017 Q3",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -160,7 +160,7 @@ def vendor_generation_map_1():
             "architecture": "Sandy Bridge-EP",
             "vendor": "Intel",
             "generation": 3,
-            "launch_date": "Q1 2012",
+            "launch_date": "2012 Q1",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -168,7 +168,7 @@ def vendor_generation_map_1():
             "architecture": "Sandy Bridge-EP",
             "vendor": "Intel",
             "generation": 3,
-            "launch_date": "Q1 2012",
+            "launch_date": "2012 Q1",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -176,7 +176,7 @@ def vendor_generation_map_1():
             "architecture": "Sandy Bridge-EP",
             "vendor": "Intel",
             "generation": 3,
-            "launch_date": "Q1 2012",
+            "launch_date": "2012 Q1",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -184,7 +184,7 @@ def vendor_generation_map_1():
             "architecture": "Sandy Bridge-EP",
             "vendor": "Intel",
             "generation": 3,
-            "launch_date": "Q1 2012",
+            "launch_date": "2012 Q1",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -192,7 +192,7 @@ def vendor_generation_map_1():
             "architecture": "Westmere-EP",
             "vendor": "Intel",
             "generation": 1,
-            "launch_date": "Q1 2010",
+            "launch_date": "2010 Q1",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -200,7 +200,7 @@ def vendor_generation_map_1():
             "architecture": "Zen",
             "vendor": "AMD",
             "generation": 1,
-            "launch_date": "Q2 2017",
+            "launch_date": "2017 Q2",
             "numa_nodes_number": "8",
             "numa_nodes_first_cpus": [0, 1, 2, 3, 4, 5, 6, 7],
         },
@@ -208,7 +208,7 @@ def vendor_generation_map_1():
             "architecture": "Zen 2",
             "vendor": "AMD",
             "generation": 2,
-            "launch_date": "Q3 2019",
+            "launch_date": "2019 Q3",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -216,7 +216,7 @@ def vendor_generation_map_1():
             "architecture": "Zen 2",
             "vendor": "AMD",
             "generation": 2,
-            "launch_date": "Q3 2019",
+            "launch_date": "2019 Q3",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -224,7 +224,7 @@ def vendor_generation_map_1():
             "architecture": "Zen 2",
             "vendor": "AMD",
             "generation": 2,
-            "launch_date": "Q3 2019",
+            "launch_date": "2019 Q3",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -232,7 +232,7 @@ def vendor_generation_map_1():
             "architecture": "Zen 2",
             "vendor": "AMD",
             "generation": 2,
-            "launch_date": "Q3 2019",
+            "launch_date": "2019 Q3",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -240,7 +240,7 @@ def vendor_generation_map_1():
             "architecture": "Opteron",
             "vendor": "AMD",
             "generation": 1,
-            "launch_date": "Q4 2004",
+            "launch_date": "2004 Q4",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
@@ -248,11 +248,12 @@ def vendor_generation_map_1():
             "architecture": "ThunderX2",
             "vendor": "Cavium",
             "generation": 1,
-            "launch_date": "Q2 2016",
+            "launch_date": "2016 Q2",
             "numa_nodes_number": "2",
             "numa_nodes_first_cpus": [0, 1],
         },
     }
+
     return (vendor_generation_map,)
 
 
@@ -468,9 +469,25 @@ def _(batch_identifier, inventory, load, pl, plt, results_directory, sns):
             estimator="median",
             hue="temperature_range",
             palette=color_map,
-            errorbar=("pi", 50), capsize=.2,
-            err_kws={"color": ".3", "linewidth": 1.2},
+            errorbar=None,     # Disable seaborn error bars
             **kwargs
+        )
+
+        # Extract bar center positions
+        x_coords = [p.get_x() + p.get_width() / 2 for p in ax.patches]
+
+        # Pull standard deviations for each bar
+        yerr = data["pkg_per_core_std"].values
+
+        # Add error bars manually
+        ax.errorbar(
+            x=x_coords,
+            y=data["pkg_per_core"],
+            yerr=yerr,
+            fmt="none",
+            capsize=3,
+            linewidth=1,
+            color="black"
         )
         #ax.set_title(ax.get_title().split("processor_description = ")[1])
         every_nth = 2
@@ -523,101 +540,82 @@ def _(batch_identifier, inventory, load, pl, plt, results_directory, sns):
 
 
 @app.cell
-def _(baseline):
+def _(batch_identifier, inventory, load, pl, plt, results_directory, sns):
+    baseline_consumptions_n = load.load_baseline(
+            batch_identifier=batch_identifier,
+            results_directory=results_directory)
 
-    baseline.describe()
-    return
-
-
-@app.cell
-def _(baseline, pl, plt, sns):
-    baseline_cluster_mean = (
-        baseline
-        .group_by("g5k_cluster")
-        .agg([
-            pl.mean("pkg_per_core").alias("Package domain consumption per core"),
-            pl.mean("ram_per_core").alias("RAM domain consumption per core"),
-        ])
-    )
-    baseline_long = baseline_cluster_mean.melt(
-        id_vars=["g5k_cluster"],
-        value_vars=["Package domain consumption per core", "RAM domain consumption per core"],
-        variable_name="domain",
-        value_name="consumption"
-    )
-    df_plot_domains = baseline_long.to_pandas()
-    # --- Compute cluster order by pkg consumption ---
-    cluster_order = (
-        df_plot_domains[df_plot_domains["domain"] == "Package domain consumption per core"]
-        .sort_values("consumption")["g5k_cluster"]
-        .tolist()
-    )
-
-    # Merge processor info into df_plot_domains
-    processor_info = baseline.select([
-        pl.col("g5k_cluster"),
-        pl.col("architecture"),
-        pl.col("version"),
-        pl.col("launch_date")
-    ]).unique().to_pandas()
-
-    df_plot_domains = df_plot_domains.merge(
-        processor_info,
-        on="g5k_cluster",
+    baseline_consumptions_n = baseline_consumptions_n.join(
+        other=inventory,
+        left_on=["g5k_cluster"],
+        right_on=["cluster"],
         how="left"
     )
 
-    # Create formatted labels for the x-axis
-    df_plot_domains["cluster_label"] = (
-        #df_plot_domains["g5k_cluster"]
-        #+ "\n"
-        df_plot_domains["architecture"].fillna("Unknown") + ", "
-        + df_plot_domains["version"].fillna("Unknown") + ", "
-        + df_plot_domains["launch_date"].fillna("Unknown")
+    baseline_consumptions_n = baseline_consumptions_n.with_columns([
+        (pl.col("pkg") / pl.col("cores_per_node")).alias("pkg_per_core"),
+        (pl.col("ram") / pl.col("cores_per_node")).alias("ram_per_core")
+    ])
+
+
+    baseline_consumptions_n.sort("launch_date")
+
+    baseline_long = baseline_consumptions_n.select(
+        pl.col("g5k_cluster"),
+        pl.col("microarchitecture"),
+        pl.col("version"),
+        pl.col("launch_date"),
+        pl.col("pkg_per_core").alias("value"),
+        pl.lit("Package").alias("metric")
+    ).vstack(
+        baseline_consumptions_n.select(
+            pl.col("g5k_cluster"),
+            pl.col("microarchitecture"),
+            pl.col("version"),
+            pl.col("launch_date"),
+            pl.col("ram_per_core").alias("value"),
+            pl.lit("RAM").alias("metric")
+        )
     )
 
-    # --- Sort clusters by pkg consumption ---
-    cluster_order = (
-        df_plot_domains[df_plot_domains["domain"] == "Package domain consumption per core"]
-        .sort_values("consumption")["cluster_label"]
-        .tolist()
+
+    df_long = baseline_long.to_pandas()
+    df_long["processor_label"] = (
+        df_long["microarchitecture"] + " (" +
+        df_long["version"] + ", " +
+        df_long["launch_date"].astype(str) + ")"
     )
 
 
+    sns.set_theme(context="paper", style="whitegrid")
 
-    # --- FacetGrid: stacked vertically ---
-    grid = sns.FacetGrid(
-        df_plot_domains,
-        row="domain",
-        sharex=True,
-        sharey=True,
-        height=4.5,
-        aspect=2
+    fig, ax = plt.subplots(figsize=(12, 5))
+
+    # Draw grouped bars (pkg and ram)
+    barplot = sns.barplot(
+        data=df_long,
+        x="processor_label",
+        y="value",
+        hue="metric",
+        estimator="median",
+        errorbar=("pi", 50),      
+        ax=ax
     )
 
-    grid.map_dataframe(
-        sns.barplot,
-        x="cluster_label",
-        y="consumption",
-        order=cluster_order,
-        palette="muted"
-    )
+    # Format x-axis labels and axis titles
+    ax.set_xlabel("Processor (Architecture, Version, Launch Date)", fontsize=12)
+    ax.set_ylabel("Baseline Consumption\nper Core (W)", fontsize=12)
+    ax.tick_params(axis="x", labelrotation=45, labelsize=10)
+    plt.legend(frameon=False, fontsize=12, title_fontsize=10, loc="upper left", title="Domain")
+    for label in ax.get_xticklabels():
+        label.set_ha("right")
+        label.set_rotation_mode("anchor")
 
-    # --- Improve tick labels ---
-    for axe in grid.axes.flat:
-        axe.tick_params(axis="x", labelrotation=45, labelsize=9)
-        for label_processor in axe.get_xticklabels():
-            label_processor.set_ha("right")
-            label_processor.set_rotation_mode('anchor')  # ensures text doesn't get cut off
-        axe.set_xlabel("Processor (Architecture, Version, Launch Date)")
-        axe.set_ylabel("Mean Baseline Consumption per Core (W)")
+    plt.savefig("baseline_consumption_clusters_domains.png", bbox_inches="tight", dpi=600)
 
-    # --- Adjust figure spacing so ticks are visible ---
-    grid.fig.subplots_adjust(hspace=0.25, bottom=0.3, top=0.9)
-    grid.fig.suptitle("Average Baseline Consumption per Core by Cluster and Domain", y=0.95)
-    grid.savefig("baseline_consumption_clusters_processors.pdf", bbox_inches="tight", pad_inches=0.01)
-
+    plt.tight_layout()
     plt.show()
+
     return
 
 
@@ -969,7 +967,7 @@ def _(overhead_df, palette_for_tools, plt, sns):
             err_kws={"color": ".3", "linewidth": 1.2},
             **kwargs
         )
-    
+
     # Facet by cluster
     g_bar = sns.FacetGrid(
         overhead_df,
