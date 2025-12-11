@@ -11,6 +11,7 @@
       ${SUDO_CMD}kill -2 $SCAPHANDRE_PID
       cat /tmp/scaphandre_and_perf_${CORE_VALUE}_{{ cpu_ops_per_core}}_$i | grep "Host" | awk -v ITER=$i '{printf("%s,%s,%s\n","pkg",$2,ITER)}' >> {{ results_directory }}/scaphandre_and_perf_${CORE_VALUE}_${CPU_OPS_PER_CORE}.csv
       ${SUDO_CMD}kill -2 $PERF_PID
+      sleep 5s
       cat /tmp/perf_and_scaphandre_${CORE_VALUE}_${CPU_OPS_PER_CORE}_$i >> {{ results_directory }}/perf_and_scaphandre_${CORE_VALUE}_${CPU_OPS_PER_CORE}
       echo "$TEMPERATURE_START, $TEMPERATURE_STOP, $i" >> {{ results_directory }}/perf_and_scaphandre_${CORE_VALUE}_${CPU_OPS_PER_CORE}_temperatures.csv
 

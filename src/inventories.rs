@@ -112,7 +112,7 @@ pub struct Processor {
     ht_capable: bool,
     instruction_set: String,
     pub microarchitecture: String,
-    microcode: String,
+    microcode: Option<String>,
     model: String,
     other_description: String,
     pub vendor: String,

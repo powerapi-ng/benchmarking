@@ -76,9 +76,7 @@ perf_columns: Dict[str, type] = {
     "os_turboboost_enabled": bool,
     "processor_detail": str,
     "processor_generation": str,
-
 }
-
 
 
 raw_energy_columns: Dict[str, type] = {
@@ -123,7 +121,6 @@ energy_columns: Dict[str, type] = {
     "os_turboboost_enabled": bool,
     "processor_detail": str,
     "processor_generation": str,
-
 }
 
 stats_columns: Dict[str, type] = {

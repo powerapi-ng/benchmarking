@@ -7,9 +7,10 @@
         -v $(pwd):{{ hwpc_home_directory }} \
         powerapi/hwpc-sensor:1.4.0 \
         -n {{ hwpc_and_perf_configs.get(core_value).unwrap().name }}_{{ cpu_ops_per_core }}_$i \
+        -f 1000 \
         -p {{ hwpc_and_perf_configs.get(core_value).unwrap().cgroup_basepath }} \
         -r {{ hwpc_and_perf_configs.get(core_value).unwrap().output.type }} -U {{ hwpc_home_directory }}/{{ results_directory }}/hwpc_and_perf_{{ core_value }}_{{ cpu_ops_per_core }}/hwpc_and_perf_{{ core_value }}_{{ cpu_ops_per_core }}_$i \
-        {% if  hwpc_alone_configs.get(core_value).unwrap().system.rapl.events.len() > 0 %} -s "rapl" {%~ for event in hwpc_alone_configs.get(core_value).unwrap().system.rapl.events %}-e "{{ event }}" {% endfor %}{% endif %} {% if  hwpc_alone_configs.get(core_value).unwrap().system.msr.events.len() > 0 %} -s "msr" {%~ for event in hwpc_alone_configs.get(core_value).unwrap().system.msr.events %}-e "{{ event }}" {% endfor %} {% endif %} {% if  hwpc_alone_configs.get(core_value).unwrap().system.core.events.len() > 0 %} -c "core" {%~ for event in hwpc_alone_configs.get(core_value).unwrap().system.core.events %}-e "{{ event }}" {% endfor %} {% endif %}
+        {% if  hwpc_and_perf_configs.get(core_value).unwrap().system.rapl.events.len() > 0 %} -s "rapl" -o {{ hwpc_and_perf_configs.get(core_value).unwrap().system.rapl.monitoring_type }} {%~ for event in hwpc_and_perf_configs.get(core_value).unwrap().system.rapl.events %}-e "{{ event }}" {% endfor %}{% endif %} {% if  hwpc_and_perf_configs.get(core_value).unwrap().system.msr.events.len() > 0 %} -s "msr" {%~ for event in hwpc_and_perf_configs.get(core_value).unwrap().system.msr.events %}-e "{{ event }}" {% endfor %} {% endif %} {% if  hwpc_and_perf_configs.get(core_value).unwrap().system.core.events.len() > 0 %} -c "core" {%~ for event in hwpc_and_perf_configs.get(core_value).unwrap().system.core.events %}-e "{{ event }}" {% endfor %} {% endif %}
 
       ${SUDO_CMD}bash -c "perf stat -a -o /tmp/perf_and_hwpc_{{ core_value }}_{{ cpu_ops_per_core }}_$i {% for perf_event in perf_events.iter() %}-e {{ perf_event }} {% endfor %} & echo \$!" > /tmp/perf_pid_$i
       PERF_PID=$(cat /tmp/perf_pid_$i)
@@ -20,6 +21,7 @@
 
       ${SUDO_CMD}kill -2 $PERF_PID
       docker stop {{ hwpc_and_perf_configs.get(core_value).unwrap().name }}_{{ cpu_ops_per_core }}_$i
+      sleep 5s
       TEMPERATURE_STOP=$(get_average_temperature)
       echo "$TEMPERATURE_START, $TEMPERATURE_STOP, $i" >> {{ results_directory }}/perf_and_hwpc_{{ core_value }}_{{ cpu_ops_per_core }}_temperatures.csv
       cat /tmp/perf_and_hwpc_{{ core_value }}_{{ cpu_ops_per_core }}_$i >> {{ results_directory }}/perf_and_hwpc_{{ core_value }}_{{ cpu_ops_per_core }}

@@ -17,6 +17,7 @@ git clone https://github.com/mlco2/codecarbon.git
 python3.12 -m venv codecarbon/
 source codecarbon/bin/activate
 sed -i 's/Timer(self.interval, self._run)/Timer(self.interval\/1000, self._run)/' codecarbon/codecarbon/external/scheduler.py
+sed -i 's/logging.Formatter(format, datefmt="%H:%M:%S")/logging.Formatter(format, datefmt=None)/' codecarbon/codecarbon/external/logger.py
 pip install /tmp/codecarbon
 ${SUDO_CMD}ln -s /home/nleblond/.local/bin/codecarbon /usr/local/bin/codecarbon
 {% endif %}
@@ -75,8 +76,6 @@ get_average_temperature() {
 }
 
 {% include "baseline_consumption.sh" %}
-
-{% include "warmup.sh" %}
 
 {% for target_frequency in target_frequencies %}
 

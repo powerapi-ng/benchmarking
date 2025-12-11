@@ -17,7 +17,7 @@ use std::{env, fs};
 use subprocess::{Popen, PopenConfig, Redirection};
 use thiserror::Error;
 
-const MAX_CONCURRENT_JOBS: usize = 30;
+const MAX_CONCURRENT_JOBS: usize = 20;
 const G5K_DAY_BOTTOM_BOUNDARY: i64 = 9;
 const G5K_DAY_UP_BOUNDARY: i64 = 19;
 
@@ -448,7 +448,7 @@ impl Jobs {
                             self.check_unfinished_jobs(&client, super::BASE_URL, jobs_file)
                                 .await?;
                         }
-                        while !within_time_window(scripts::WALLTIME) {
+                        while false {//!within_time_window(scripts::WALLTIME) {
                             info!(
                                 "Too close of day|night boundaries for {} WALLTIME",
                                 scripts::WALLTIME
@@ -691,6 +691,9 @@ fn within_time_window(walltime: &str) -> bool {
         return true;
     }
     if adjusted_hour < G5K_DAY_BOTTOM_BOUNDARY && current_hour < G5K_DAY_BOTTOM_BOUNDARY {
+        return true;
+    }
+    if adjusted_hour < G5K_DAY_BOTTOM_BOUNDARY && current_hour > G5K_DAY_UP_BOUNDARY {
         return true;
     }
     return false;

@@ -25,3 +25,5 @@ find "$dossier" -type f -name "codecarbon*.csv" | while read -r fichier; do
         ' OFS=, "$fichier" > tmp_file && mv tmp_file "$fichier"
     fi
 done
+
+
