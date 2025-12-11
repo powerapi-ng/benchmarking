@@ -1,48 +1,93 @@
-# Powermeter Software Benchmarks Framework 
+# Power-meter Software Benchmarks Framework
 
-## What It Does
+## Purpose
 
-This repository contains the source code for generating and running benchmarks for several **power-meter softwares**. These benchmarks are designed to adapt to the configuration and architecture of underlying nodes in the **Grid5000** infrastructure. 
+This repository provides the framework for generating and executing benchmarks targeting multiple **power-meter software stacks**. The framework automatically adapts benchmark generation and execution to the configuration and architecture of nodes available in the **Grid5000** infrastructure.
 
-### Key Processes:
+It enables experimenters to compare different power-meter tools across a consistent set of criteria, supporting the selection of the most appropriate software for specific measurement or experimentation needs.
 
-1. **Gather Node Information**: The benchmarks start by scraping the Grid5000 API to collect details about all available nodes.
-2. **Reuse Existing Job List (Optional)**: If a `jobs.yaml` file exists, the tool can leverage it to initialize the job list.
-3. **Generate Bash Scripts**: For each filtered node, a custom bash script is generated using templates located in the `/templates` directory.
-4. **Submit Jobs via OAR**: The generated scripts are submitted to corresponding nodes through SSH using **OAR**, ensuring that no more than `N` jobs are simultaneously active.
-5. **Monitor and Collect Results**:
-    - The status of each submitted job is tracked until it completes (either successfully or in a failed state).
-    - Upon completion, **rsync** is used to retrieve the results files locally. If the retrieval fails, the job’s state is marked as `UnknownState` for manual review.
-6. **Store Results**: Once all filtered nodes have completed their benchmark jobs, the benchmarking process concludes, and all result files are stored in the `/results.d` directory.
-7. **Processe Results**: Once a job reaches a terminal state (likely Terminated or Failed), aggregates all files into proper CSVs. Formats can be found in [the results source code](./src/results), structures provides it.
+---
 
-## Why it exists.
+## Overview of Core Processes
 
-This benchmarks aim at comparing different power-meter softwares on several selected criteria and serve as guideling for experimenters to choose the most suitable tool.
+1. **Node Discovery**
+   The framework begins by querying the Grid5000 API to collect hardware and configuration details for all available nodes.
+
+2. **Optional Reuse of Existing Job Metadata**
+   If a `jobs.yaml` file already exists, the framework loads it to initialize and resume a previous benchmarking session.
+
+3. **Benchmark Script Generation**
+   For each node that meets the configured filters, a dedicated benchmark script is generated using the templates stored in the `/templates` directory.
+
+4. **Distributed Job Submission via OAR**
+   The generated scripts are submitted using **OAR** through SSH on the corresponding Grid5000 sites. The framework enforces a configurable maximum number of concurrently active jobs.
+
+5. **Execution Monitoring and Result Retrieval**
+
+   * Each job is continuously monitored until it reaches a terminal state.
+   * Once completed, the associated results are fetched locally via **rsync**.
+   * If retrieval fails, the job is marked as `UnknownState` for manual inspection.
+
+6. **Result Storage**
+   When all benchmark jobs for the filtered node set have finished, the resulting data is stored under the `/results.d` directory.
+
+7. **Result Processing**
+   When a job reaches a terminal state (e.g., `Terminated` or `Failed`), all relevant output files are automatically aggregated into structured CSV files. Exact formats are documented in the [`src/results`](./src/results) module.
+
+---
+
+## Configuration Requirements
+
+### Environment Variables
+
+Before running the framework, you **must** create a `.env` file to supply authentication credentials and registry information.
+A template is provided as `.env.example`:
+
+```
+G5K_USERNAME="TO_BE_DEFINED"
+G5K_PASSWORD="TO_BE_DEFINED"
+DOCKER_HUB_USERNAME="TO_BE_DEFINED"
+DOCKER_HUB_TOKEN="TO_BE_DEFINED"
+```
+
+**Instructions:**
+
+1. Copy the template to create the actual configuration file:
+
+   ```bash
+   cp .env.example .env
+   ```
+2. Replace all `TO_BE_DEFINED` values with your personal credentials:
+
+   * `G5K_USERNAME` and `G5K_PASSWORD` must reference your Grid5000 account.
+   * `DOCKER_HUB_USERNAME` and `DOCKER_HUB_TOKEN` must reference valid Docker Hub credentials if pushing/pulling benchmark-related images.
+
+The framework will not function properly until this `.env` file is correctly populated.
+
+---
 
 ## Installation
 
-To use this repository, you need to clone it locally, ensure you have Cargo installed, and then compile and run the project. Follow the steps below:
+To use the framework, clone the repository, ensure Rust and Cargo are installed, configure your environment, and build the project.
 
 ### Prerequisites
 
-Before proceeding, make sure your system meets the following requirements:
+* **Rust and Cargo**
+  Rust (including Cargo) is required to build the project. Install using:
 
-- **Rust and Cargo**: Install Rust (which includes Cargo, Rust’s package manager and build system). If Rust is not installed, follow the instructions below:
-    1. Download and install Rust by running:
-     ```bash
-     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-     ```
-    2. Follow the on-screen instructions to complete the installation.
-    3. Add Cargo to your PATH (usually done by Rust installer automatically). Restart your terminal if necessary.
+  ```bash
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  ```
 
-- **Dependencies**:
-  - A working installation of **OAR** on your Grid5000 node (or appropriate access).
-  - SSH access configured to interact with the Grid5000 nodes (for example, `ssh rennes` ran locally shall connect you to the rennes' frontend).
+  Follow the installer instructions and restart your terminal if needed.
+
+* **Grid5000 Access and Dependencies**
+
+  * A working **OAR** environment on the targeted Grid5000 site.
+  * SSH access configured so that commands like `ssh rennes` connect to the corresponding frontend.
+  * Required node-side tools are automatically deployed or assumed available depending on the target configuration.
 
 ### Clone the Repository
-
-Clone this repository to your local machine:
 
 ```bash
 git clone https://github.com/powerapi-ng/benchmarking.git
@@ -51,43 +96,16 @@ cd benchmarking
 
 ### Build the Project
 
-Compile the project using Cargo:
-
 ```bash
 cargo build --release
 ```
 
-This will produce an optimized executable located in the `target/release/` directory.
+The executable will be generated under `target/release/`.
 
-### Run the Project
-
-Execute the compiled program:
+### Running the Benchmark Framework
 
 ```bash
 ./target/release/benchmarking
 ```
-  
-You may stop the execution of the process and start it again later, as long as the "jobs.yaml" file is present so the necessary information can be retrieved.  
 
-# Tips G5k
-
-- To execute a script on a given list of servers (chifflot) during 4 hours max: 
-
-```
-oarsub -l {"host in ('chifflot-1.lille.grid5000.fr','chifflot-4.lille.grid5000.fr','chifflot-5.lille.grid5000.fr')"}/host=1,walltime=4 ./my_script.sh
-```
-
-- To check usage policy: 
-
-```
-usagepolicycheck -t
-```
-
-- To install docker : 
-
-```
-g5k-setup-docker -t
-``` 
-
-- To check reservations at Lille site (with authentification): 
-
+Execution may be stopped and resumed at any time, provided that the `jobs.yaml` file remains present.
