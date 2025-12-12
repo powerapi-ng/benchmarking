@@ -7,7 +7,7 @@ git checkout "v0.7.0"
 cd app-agent
 cargo build --release --features local_x86
 ${SUDO_CMD}ln -s $(realpath ../target/release/alumet-local-agent) /usr/local/bin/alumet
-cd /home/nleblond
+cd /home/{{ g5k_username }}
 alumet regen-config
 
 {% for core_value in core_values %}

@@ -6,7 +6,7 @@ cd scaphandre
 git checkout "v1.0.1"
 cargo build --release
 ${SUDO_CMD}ln -s $(realpath ./target/release/scaphandre) /usr/local/bin/scaphandre
-cd /home/nleblond
+cd /home/{{ g5k_username }}
 
 {% for core_value in core_values %}
   {% for cpu_ops_per_core in cpu_ops_per_core_list %}

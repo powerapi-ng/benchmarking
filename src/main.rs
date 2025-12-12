@@ -279,6 +279,7 @@ async fn main() -> Result<(), BenchmarkError> {
         &benchmark_args.results_directory,
     )?;
 
+    let g5k_username = env::var("G5K_USERNAME").unwrap_or_else(|_| "debug".to_string());
     let events_by_vendor = load_events_config(&benchmark_args.config_file)?;
     let mut jobs: Jobs = load_or_init_jobs(&benchmark_args.jobs_file)?;
 
@@ -317,6 +318,7 @@ async fn main() -> Result<(), BenchmarkError> {
             &benchmark_args.results_directory,
             &events_by_vendor,
             benchmark_args.os_flavor.clone(),
+            g5k_username.clone()
         )
         .await?;
 

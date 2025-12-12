@@ -51,6 +51,7 @@ struct BenchmarkTemplate {
     perf_events: PerfEvents,
     cpu_ops_per_core_list: Vec<u32>,
     os_flavor: String,
+    g5k_username: String
 }
 
 impl BenchmarkTemplate {
@@ -84,6 +85,7 @@ impl BenchmarkTemplate {
         perf_events: PerfEvents,
         cpu_ops_per_core_list: &[u32],
         os_flavor: String,
+        g5k_username: String,
     ) -> Self {
         Self {
             nb_iterations,
@@ -115,6 +117,7 @@ impl BenchmarkTemplate {
             perf_events,
             cpu_ops_per_core_list: cpu_ops_per_core_list.into(),
             os_flavor,
+            g5k_username
         }
     }
 }
@@ -130,6 +133,7 @@ pub enum ScriptError {
 pub fn generate_script_file(
     job: &jobs::Job,
     events_by_vendor: &EventsByVendor,
+    g5k_username: String
 ) -> Result<(), ScriptError> {
     dotenv::dotenv().ok();
     debug!("Creating file : {}", &job.script_file);
@@ -183,6 +187,7 @@ pub fn generate_script_file(
         perf_events,
         CPU_OPS_PER_CORE_LIST,
         job.os_flavor.clone(),
+        g5k_username.clone()
     );
     let benchmark = benchmark.render().unwrap();
     file.write_all(benchmark.as_bytes())?;
