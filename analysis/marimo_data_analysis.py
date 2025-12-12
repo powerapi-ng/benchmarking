@@ -996,6 +996,51 @@ def _(overhead_df, palette_for_tools, plt, sns):
 
 
 @app.cell
+def _(overhead_df, palette_for_tools, plt, sns):
+    def draw_barplot_ram(data, **kwargs):
+        """
+        Draw grouped barplot of mean pkg_overhead_per_core per frequency, with error bars per tool.
+        """
+        sns.barplot(
+            data=data,
+            x="target_frequency",
+            y="ram_overhead_per_core",
+            hue="tool",
+            estimator="median",
+            palette=palette_for_tools,
+            errorbar=("pi", 50), capsize=.2,
+            err_kws={"color": ".3", "linewidth": 1.2},
+            **kwargs
+        )
+
+    # Facet by cluster
+    g_bar_ram = sns.FacetGrid(
+        overhead_df,
+        col="processor_description",
+        col_wrap=3,
+        margin_titles=True,
+        height=3.7,
+        aspect=1.5
+    )
+
+    plt.suptitle("", fontsize=18)
+    g_bar_ram.map_dataframe(draw_barplot_ram)
+
+    # Beautify
+    g_bar_ram.set_axis_labels("Frequency (Hz)", "RAM domain overhead\nper core with IQR (W)", fontsize=14)
+    g_bar_ram.set_titles(col_template="{col_name}", fontsize=12)
+    g_bar_ram.add_legend(fontsize=16, ncol=5, bbox_to_anchor=(0.0, -0.3175, 0.5, 0.5))
+
+    for axis_ram in g_bar_ram.axes:
+        axis_ram.tick_params(axis="x", labelsize=14)
+        axis_ram.tick_params(axis="y", labelsize=14)
+        axis_ram.set_title(label=axis_ram.get_title(), fontsize=16)
+    plt.savefig("ram_overhead.png", bbox_inches="tight", dpi=600)
+    plt.show()
+    return
+
+
+@app.cell
 def _(
     alumet_frequency,
     codecarbon_frequency_agg_raw,
