@@ -19,7 +19,7 @@ source codecarbon/bin/activate
 sed -i 's/Timer(self.interval, self._run)/Timer(self.interval\/1000, self._run)/' codecarbon/codecarbon/external/scheduler.py
 sed -i 's/logging.Formatter(format, datefmt="%H:%M:%S")/logging.Formatter(format, datefmt=None)/' codecarbon/codecarbon/external/logger.py
 pip install /tmp/codecarbon
-${SUDO_CMD}ln -s /home/nleblond/.local/bin/codecarbon /usr/local/bin/codecarbon
+${SUDO_CMD}ln -s /home/{{ g5k_username }}/.local/bin/codecarbon /usr/local/bin/codecarbon
 {% endif %}
 
 
@@ -33,7 +33,7 @@ git checkout "v0.7.0"
 cd app-agent
 cargo build --release --features local_x86
 ${SUDO_CMD}ln -s $(realpath ../target/release/alumet-local-agent) /usr/local/bin/alumet
-cd /home/nleblond
+cd /home/{{ g5k_username }}
 alumet regen-config
 {% endif %}
 
@@ -50,7 +50,7 @@ git checkout "v1.0.1"
 sed -i 's/riemann_client = { version = "0.9.0"/riemann_client = { path = "..\/rust-riemann_client"/' Cargo.toml
 cargo build --release
 ${SUDO_CMD}ln -s $(realpath ./target/release/scaphandre) /usr/local/bin/scaphandre
-cd /home/nleblond
+cd /home/{{ g5k_username }}
 {% endif %}
 
 {% if vjoule_alone || vjoule_and_perf %}
@@ -58,7 +58,7 @@ cd /tmp
 wget https://github.com/davidson-consulting/vjoule/releases/download/v1.3.0/vjoule-tools_1.3.0.deb
 dpkg -i vjoule-tools_1.3.0.deb
 ${SUDO_CMD}systemctl start vjoule_service
-cd /home/nleblond
+cd /home/{{ g5k_username }}
 
 ${SUDO_CMD}systemctl status vjoule_service
 sleep 30

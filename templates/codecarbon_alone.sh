@@ -3,7 +3,7 @@ python3.12 -m venv codecarbon
 cd codecarbon/
 source bin/activate
 pip install codecarbon
-cd /home/nleblond
+cd /home/{{ g5k_username }}
 
 {% for core_value in core_values %}
   {% for cpu_ops_per_core in cpu_ops_per_core_list %}

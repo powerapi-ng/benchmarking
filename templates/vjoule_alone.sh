@@ -2,7 +2,7 @@ cd /tmp
 wget https://github.com/davidson-consulting/vjoule/releases/download/v1.3.0/vjoule-tools_1.3.0.deb
 dpkg -i vjoule-tools_1.3.0.deb
 ${SUDO_CMD}systemctl start vjoule_service
-cd /home/nleblond
+cd /home/{{ g5k_username }}
 
 ${SUDO_CMD}systemctl status vjoule_service
 sleep 30

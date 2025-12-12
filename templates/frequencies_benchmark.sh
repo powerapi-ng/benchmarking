@@ -35,7 +35,7 @@
 
   #ALUMET
   TEMPERATURE_START=$(get_average_temperature)
-  sed -i 's/poll_interval = "[0-9]*m\{0,1\}s"/poll_interval = "{{ 1000 / target_frequency }}ms"/' /home/nleblond/alumet-config.toml
+  sed -i 's/poll_interval = "[0-9]*m\{0,1\}s"/poll_interval = "{{ 1000 / target_frequency }}ms"/' /home/{{ g5k_username }}/alumet-config.toml
   ${SUDO_CMD}bash -c "alumet --plugins 'csv,rapl' --output '/tmp/frequency_{{ target_frequency }}_alumet_and_perf_${i}.csv' & echo \$!" > /tmp/alumet_pid_$i
   ALUMET_PID=$(cat /tmp/alumet_pid_$i)
   ${SUDO_CMD}perf stat -a -o /tmp/frequency_{{ target_frequency }}_perf_and_alumet_$i {% for perf_event in perf_events.iter() %}-e {{ perf_event }} {% endfor %} sleep 40

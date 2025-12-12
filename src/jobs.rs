@@ -393,6 +393,7 @@ impl Jobs {
         results_dir: &str,
         events_by_vendor: &EventsByVendor,
         os_flavor: String,
+        g5k_username: String
     ) -> Result<(), JobError> {
         let sites = inventories::get_inventory_sites(inventories_dir)?;
         let mut clusters_nodes: Vec<Vec<(String, String, Node)>> = Vec::new();
@@ -479,7 +480,7 @@ impl Jobs {
                         )?;
                         fs::create_dir_all(results_dir)?;
 
-                        scripts::generate_script_file(&job, events_by_vendor)?;
+                        scripts::generate_script_file(&job, events_by_vendor, g5k_username.clone())?;
 
                         job.submit_job().await?;
                         self.jobs.push(job);
